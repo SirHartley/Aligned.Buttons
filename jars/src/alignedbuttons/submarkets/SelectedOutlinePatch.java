@@ -5,6 +5,7 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.util.Misc;
 import org.lwjgl.opengl.GL11;
 import patchlib.api.context.AfterContext;
 import patchlib.api.match.ClassMatch;
@@ -21,8 +22,8 @@ import java.awt.Color;
                 parameterTypes = {String.class, String.class, Color.class, Color.class, Color.class})))
 public class SelectedOutlinePatch {
 
-    // below this the faction color has no real hue, so saturating it would turn it red
-    private static final float GRAY = 0.1f;
+    // below this the faction color has no real hue to saturate; pale tints above it still have one
+    public static final float GRAY = 0.03f;
     // the animated inner ring is this far from the faction color to white, so white highlights show on it
     private static final float TINT = 0.5f;
     // like the vanilla selected weapon slot: four highlights a quarter lap apart, clockwise, one lap in 4.4 s
@@ -36,15 +37,17 @@ public class SelectedOutlinePatch {
     public static void afterRender(AfterContext context) {
         ButtonAPI button = RenderPanels.submarketButton(context);
         if (button == null || !button.isHighlighted() || !(context.getSelf() instanceof UIComponentAPI panel)) return;
-        Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBrightUIColor());
+        Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBrightUIColor(),
+                Misc.getHighlightColor());
         boolean animated = LayoutSettings.animatedOutline();
         Color inside = animated ? mix(color, Color.WHITE, TINT) : Color.WHITE;
         draw(panel.getPosition(), new Color[]{Color.BLACK, color, inside}, animated, (Float) context.getArg(0));
     }
 
-    public static Color saturated(Color color) {
+    // a gray would come out near white and merge with the white inner ring, so it gets the fallback
+    public static Color saturated(Color color, Color gray) {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-        return Color.getHSBColor(hsb[0], hsb[1] < GRAY ? hsb[1] : 1f, 1f);
+        return hsb[1] < GRAY ? gray : Color.getHSBColor(hsb[0], 1f, 1f);
     }
 
     public static Color mix(Color from, Color to, float amount) {
