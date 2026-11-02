@@ -52,7 +52,12 @@ public final class LayoutChecks {
             case STRETCHED -> require(grid.buttonWidth(0) >= VANILLA_WIDTH || grid.columns == 1,
                     "never narrower than vanilla: " + name);
             case ICONS -> {
-                require(grid.buttonWidth(0) >= SubmarketGrid.iconOnlyWidth(HEIGHT), "room for the icon: " + name);
+                for (int column = 0; column < grid.columns; column++) {
+                    require(grid.buttonWidth(column) == SubmarketGrid.iconOnlyWidth(HEIGHT),
+                            "icon sized tiles: " + name);
+                }
+                float inset = (grid.buttonWidth(0) - SubmarketGrid.iconWidth(HEIGHT)) / 2f;
+                require(Math.abs(inset - SubmarketGrid.BORDER) <= 0.5f, "icon centered in its tile: " + name);
                 require((grid.columns + 1) * (SubmarketGrid.iconOnlyWidth(HEIGHT) + SubmarketGrid.GAP)
                         > grid.width + SubmarketGrid.GAP, "as many icons as fit: " + name);
             }
@@ -73,10 +78,15 @@ public final class LayoutChecks {
         }
         int last = grid.columns - 1;
         require(grid.left(last) + grid.buttonWidth(last) == grid.width, "row ends on the strip edge: " + name);
+        float firstGap = grid.columns > 1 ? grid.left(1) - grid.buttonWidth(0) : SubmarketGrid.GAP;
         for (int column = 1; column < grid.columns; column++) {
-            require(grid.left(column) - grid.left(column - 1) - grid.buttonWidth(column - 1) == SubmarketGrid.GAP,
-                    "gap between columns: " + name);
-            require(Math.abs(grid.buttonWidth(column) - grid.buttonWidth(0)) <= 1f, "even widths: " + name);
+            float gap = grid.left(column) - grid.left(column - 1) - grid.buttonWidth(column - 1);
+            if (grid.fixedWidth > 0f) {
+                require(gap >= SubmarketGrid.GAP && Math.abs(gap - firstGap) <= 1f, "even gaps: " + name);
+            } else {
+                require(gap == SubmarketGrid.GAP, "gap between columns: " + name);
+                require(Math.abs(grid.buttonWidth(column) - grid.buttonWidth(0)) <= 1f, "even widths: " + name);
+            }
         }
     }
 
