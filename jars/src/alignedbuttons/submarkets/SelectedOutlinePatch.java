@@ -5,7 +5,6 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
-import com.fs.starfarer.api.util.Misc;
 import org.lwjgl.opengl.GL11;
 import patchlib.api.context.AfterContext;
 import patchlib.api.match.ClassMatch;
@@ -37,17 +36,17 @@ public class SelectedOutlinePatch {
     public static void afterRender(AfterContext context) {
         ButtonAPI button = RenderPanels.submarketButton(context);
         if (button == null || !button.isHighlighted() || !(context.getSelf() instanceof UIComponentAPI panel)) return;
-        Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBrightUIColor(),
-                Misc.getHighlightColor());
+        // base, not bright: an unset bright color is the base tinted toward the ui cyan, which turns grays blue
+        Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBaseUIColor());
         boolean animated = LayoutSettings.animatedOutline();
         Color inside = animated ? mix(color, Color.WHITE, TINT) : Color.WHITE;
         draw(panel.getPosition(), new Color[]{Color.BLACK, color, inside}, animated, (Float) context.getArg(0));
     }
 
-    // a gray would come out near white and merge with the white inner ring, so it gets the fallback
-    public static Color saturated(Color color, Color gray) {
+    // a gray keeps its own brightness, at full brightness it would be white and merge with the inner ring
+    public static Color saturated(Color color) {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-        return hsb[1] < GRAY ? gray : Color.getHSBColor(hsb[0], 1f, 1f);
+        return hsb[1] < GRAY ? new Color(color.getRed(), color.getGreen(), color.getBlue()) : Color.getHSBColor(hsb[0], 1f, 1f);
     }
 
     public static Color mix(Color from, Color to, float amount) {

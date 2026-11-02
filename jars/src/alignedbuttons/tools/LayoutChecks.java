@@ -215,22 +215,22 @@ public final class LayoutChecks {
         require(SubmarketGrid.fit("Market", 10f, measure).isEmpty(), "nothing fits");
     }
 
-    private static final Color YELLOW = new Color(255, 200, 0);
-
     private static void checkOutlineColor() {
-        Color purple = SelectedOutlinePatch.saturated(new Color(168, 118, 224), YELLOW);
+        Color purple = SelectedOutlinePatch.saturated(new Color(168, 118, 224));
         require(Math.abs(purple.getRed() - 120) <= 1 && purple.getGreen() == 0 && purple.getBlue() == 255,
                 "purple fully saturated: " + purple);
         float[] hsb = Color.RGBtoHSB(40, 90, 160, null);
-        Color blue = SelectedOutlinePatch.saturated(new Color(40, 90, 160), YELLOW);
+        Color blue = SelectedOutlinePatch.saturated(new Color(40, 90, 160));
         float[] out = Color.RGBtoHSB(blue.getRed(), blue.getGreen(), blue.getBlue(), null);
         require(Math.abs(out[0] - hsb[0]) < 0.01f && out[1] == 1f && out[2] == 1f, "hue kept, full saturation and value");
-        require(SelectedOutlinePatch.saturated(new Color(128, 128, 128), YELLOW) == YELLOW, "gray gets the fallback");
-        require(SelectedOutlinePatch.saturated(new Color(200, 202, 201), YELLOW) == YELLOW, "near gray gets the fallback");
-        // the open market's pale cyan from the screenshot came out (230, 251, 255) with the old 10 % guard
-        Color pale = SelectedOutlinePatch.saturated(new Color(207, 226, 230), YELLOW);
+        require(SelectedOutlinePatch.saturated(new Color(150, 150, 150)).equals(new Color(150, 150, 150)),
+                "gray faction keeps its gray");
+        require(SelectedOutlinePatch.saturated(new Color(200, 202, 201)).equals(new Color(200, 202, 201)),
+                "near gray keeps its color");
+        // a pale tint above the gray guard still has a hue to saturate
+        Color pale = SelectedOutlinePatch.saturated(new Color(207, 226, 230));
         float[] paleHsb = Color.RGBtoHSB(pale.getRed(), pale.getGreen(), pale.getBlue(), null);
-        require(pale != YELLOW && paleHsb[1] == 1f && pale.getRed() < 40, "pale tint is saturated: " + pale);
+        require(paleHsb[1] == 1f && pale.getRed() < 40, "pale tint is saturated: " + pale);
         Color tint = SelectedOutlinePatch.mix(purple, Color.WHITE, 0.5f);
         require(!tint.equals(Color.WHITE) && tint.getRed() > purple.getRed() && tint.getBlue() == 255,
                 "animated inner ring is a lighter shade, not white: " + tint);
