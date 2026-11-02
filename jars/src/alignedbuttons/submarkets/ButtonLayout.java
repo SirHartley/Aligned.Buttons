@@ -10,6 +10,8 @@ public enum ButtonLayout {
 
     public static final String MOD_ID = "aligned_buttons";
     public static final String SETTING = "aligned_buttons_layout";
+    // defaultValue in data/config/LunaSettings.csv
+    public static final ButtonLayout DEFAULT = FIVE_PER_ROW;
 
     // radio option text in data/config/LunaSettings.csv, also what LunaLib saves
     public final String label;
@@ -27,6 +29,6 @@ public enum ButtonLayout {
         for (ButtonLayout layout : values()) {
             if (layout.label.equals(label)) return layout;
         }
-        return STRETCHED;
+        return DEFAULT;
     }
 }

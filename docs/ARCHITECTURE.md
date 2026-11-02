@@ -33,7 +33,7 @@ There is no load order: the patch runs each time the game builds a submarket str
 
 ### Settings
 
-`submarkets/ButtonLayout` owns the mod id, the setting id `aligned_buttons_layout` and one constant per radio option; each constant's `label` is the option text in `data/config/LunaSettings.csv` and the value LunaLib saves. `data/config/LunaSettings.csv` owns the help text; its default and option order mirror `ButtonLayout`. `ButtonLayout.current` reads LunaLib once per strip build, which only happens when a screen opens, so there is no listener or cache; a missing or unknown value falls back to `STRETCHED`. A changed setting applies the next time a screen opens.
+`submarkets/ButtonLayout` owns the mod id, the setting id `aligned_buttons_layout` and one constant per radio option; each constant's `label` is the option text in `data/config/LunaSettings.csv` and the value LunaLib saves. `data/config/LunaSettings.csv` owns the help text; its default and option order mirror `ButtonLayout`. `ButtonLayout.current` reads LunaLib once per strip build, which only happens when a screen opens, so there is no listener or cache; a missing or unknown value falls back to `ButtonLayout.DEFAULT` (`FIVE_PER_ROW`), which mirrors the CSV `defaultValue`. LunaLib writes the default into `saves/common/LunaSettings/aligned_buttons.json` on first launch and keeps it there, so changing the default only reaches installs that never stored the setting. A changed setting applies the next time a screen opens.
 
 ### Build and checks
 
@@ -43,7 +43,7 @@ There is no load order: the patch runs each time the game builds a submarket str
 java -cp "out/release-build-<n>/classes:lib/*" alignedbuttons.tools.LayoutChecks
 ```
 
-It checks `SubmarketGrid` for every `ButtonLayout`, strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, the last column ends on the strip edge, and storage sits in the last column of the last row. Stretched layouts keep 5 px gaps with widths that differ by at most 1 px. Per layout: `STRETCHED` matches the vanilla column and row counts and is never narrower than vanilla; `ICONS` fits as many 73 px tiles as the row allows, keeps the icon centered within half a pixel, and spreads the spare room over gaps of at least 5 px that differ by at most 1 px; `FIVE_PER_ROW` always has five columns. It also checks `SubmarketGrid.fit` with a fixed width per character, and that `LunaSettings.csv` and `ButtonLayout` agree (header, nine columns, `Radio` type, default, option order, help text, fallback).
+It checks `SubmarketGrid` for every `ButtonLayout`, strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, the last column ends on the strip edge, and storage sits in the last column of the last row. Stretched layouts keep 5 px gaps with widths that differ by at most 1 px. Per layout: `STRETCHED` matches the vanilla column and row counts and is never narrower than vanilla; `ICONS` fits as many 73 px tiles as the row allows, keeps the icon centered within half a pixel, and spreads the spare room over gaps of at least 5 px that differ by at most 1 px; `FIVE_PER_ROW` always has five columns. It also checks `SubmarketGrid.fit` with a fixed width per character, and that `LunaSettings.csv` and `ButtonLayout` agree (header, nine columns, `Radio` type, `DEFAULT` is the CSV default and named in the help text, option order, fallback).
 
 ## Source owners
 
