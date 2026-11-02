@@ -158,14 +158,11 @@ public final class LayoutChecks {
             }
             require(rows.at(x, y) == i, "open tile still under the cursor: " + name);
             require(rows.open(i) == 1f, "open within the unfold time: " + name);
-            require(rows.labelOpacity(i, VANILLA_WIDTH - 40f) == 1f, "open tile shows its name: " + name);
         }
-        for (int i = 0; i < count; i++) {
-            if (rows.open(i) == 0f) {
-                require(rows.labelOpacity(i, SubmarketGrid.labelInset(HEIGHT) + 10f) == 0f,
-                        "folded tile hides its name: " + name);
-            }
-        }
+        // the name starts labelInset - BORDER into the tile, LabelClipPatch cuts it BORDER before the right edge
+        require(SubmarketGrid.labelInset(HEIGHT) - SubmarketGrid.BORDER >= rows.foldedWidth - SubmarketGrid.BORDER,
+                "folded tile clips its whole name: " + name);
+        require(rows.openWidth - SubmarketGrid.labelInset(HEIGHT) > 0f, "open tile has room for a name: " + name);
     }
 
     private static void checkUnfoldRows(UnfoldRows rows, String name) {

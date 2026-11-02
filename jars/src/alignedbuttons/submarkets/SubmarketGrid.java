@@ -104,11 +104,6 @@ public final class SubmarketGrid {
         return 2 * BORDER + iconWidth(buttonHeight) + LABEL_PAD;
     }
 
-    public static float widest(String text, ToDoubleFunction<String> measure) {
-        float widest = 0f;
-        for (String line : text.split("\n", -1)) widest = Math.max(widest, (float) measure.applyAsDouble(line));
-        return widest;
-    }
 
     // cuts each line on its own, vanilla names carry a line break
     public static String fit(String text, float maxWidth, ToDoubleFunction<String> measure) {

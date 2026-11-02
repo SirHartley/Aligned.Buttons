@@ -124,11 +124,4 @@ public final class UnfoldRows {
         }
         return -1;
     }
-
-    // name fades in only once it fits, fully shown when the tile is open
-    public float labelOpacity(int index, float neededWidth) {
-        float width = width(index);
-        if (neededWidth >= openWidth) return width >= openWidth ? 1f : 0f;
-        return Math.max(0f, Math.min(1f, (width - neededWidth) / (openWidth - neededWidth)));
-    }
 }
