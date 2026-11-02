@@ -52,9 +52,9 @@ public final class SubmarketGrid {
         return (buttonHeight - 2 * BORDER) * 640f / 400f;
     }
 
-    // +1 px keeps the highlight strip behind the name at zero width, not negative
+    // icon 4 px from both edges; the highlight strip goes to -1 px here, ButtonHighlightPatch skips it
     public static float iconOnlyWidth(float buttonHeight) {
-        return iconWidth(buttonHeight) + 2 * BORDER + 1f;
+        return iconWidth(buttonHeight) + 2 * BORDER;
     }
 
     public int slot(int index) {
