@@ -44,7 +44,7 @@ public class SubmarketButtonPatch {
         }
         if (buttons.isEmpty()) return;
         ButtonLayout layout = LayoutSettings.layout();
-        LayoutSettings.readOutlineAnimation();
+        LayoutSettings.readRenderSettings();
         PositionAPI first = buttons.get(0).getPosition();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));

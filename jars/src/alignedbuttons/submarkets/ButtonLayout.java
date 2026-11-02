@@ -7,7 +7,7 @@ public enum ButtonLayout {
     UNFOLD("Unfold on hover");
 
     // defaultValue in data/config/LunaSettings.csv
-    public static final ButtonLayout DEFAULT = FIVE_PER_ROW;
+    public static final ButtonLayout DEFAULT = UNFOLD;
 
     // radio option text in data/config/LunaSettings.csv, also what LunaLib saves
     public final String label;

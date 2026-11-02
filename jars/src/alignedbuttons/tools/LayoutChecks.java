@@ -2,8 +2,8 @@ package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
 import alignedbuttons.submarkets.LayoutSettings;
-import alignedbuttons.submarkets.OutlineAnimation;
 import alignedbuttons.submarkets.OutlineRing;
+import alignedbuttons.submarkets.SelectedHighlight;
 import alignedbuttons.submarkets.SelectedOutlinePatch;
 import alignedbuttons.submarkets.SubmarketGrid;
 import alignedbuttons.submarkets.UnfoldRows;
@@ -271,13 +271,17 @@ public final class LayoutChecks {
                 + "minValue,maxValue,tab"), "luna header");
         List<String> row = null;
         List<String> time = null;
-        List<String> animation = null;
+        List<String> highlight = null;
+        List<String> corners = null;
+        List<String> order = new ArrayList<>();
         for (String line : lines.subList(1, lines.size())) {
             List<String> cells = cells(line);
             require(cells.size() == 9, "nine luna columns: " + cells.get(0));
             if (cells.get(0).equals(LayoutSettings.LAYOUT)) row = cells;
             if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
-            if (cells.get(0).equals(LayoutSettings.OUTLINE_ANIMATION)) animation = cells;
+            if (cells.get(0).equals(LayoutSettings.SELECTED_HIGHLIGHT)) highlight = cells;
+            if (cells.get(0).equals(LayoutSettings.FIX_CORNERS)) corners = cells;
+            order.add(cells.get(0));
         }
         require(time != null, "unfold time setting registered");
         require(time.get(2).equals("Double"), "unfold time is a double");
@@ -291,24 +295,33 @@ public final class LayoutChecks {
         require(LayoutSettings.unfoldTime(-1.0) == LayoutSettings.UNFOLD_TIME_MIN, "time clamped at the minimum");
         require(LayoutSettings.unfoldTime(5.0) == LayoutSettings.UNFOLD_TIME_MAX, "time clamped at the maximum");
         require(LayoutSettings.unfoldTime(0.3) == 0.3f, "time kept");
-        require(animation != null, "outline animation setting registered");
-        require(animation.get(2).equals("Radio"), "outline animation is a radio");
-        require(OutlineAnimation.DEFAULT == OutlineAnimation.OFF, "outline animation is off by default");
-        require(animation.get(3).equals(OutlineAnimation.DEFAULT.label), "csv default matches OutlineAnimation.DEFAULT");
-        List<String> animationOptions = new ArrayList<>();
-        for (String option : animation.get(4).split(",")) animationOptions.add(option.trim());
-        List<String> animationLabels = new ArrayList<>();
-        for (OutlineAnimation value : OutlineAnimation.values()) animationLabels.add(value.label);
-        require(animationOptions.equals(animationLabels), "radio options match OutlineAnimation: " + animationOptions);
-        require(!animation.get(5).isBlank(), "outline animation help text");
-        for (OutlineAnimation value : OutlineAnimation.values()) {
-            require(OutlineAnimation.byLabel(value.label) == value, "label lookup " + value);
+        require(order.equals(List.of(LayoutSettings.LAYOUT, LayoutSettings.SELECTED_HIGHLIGHT, LayoutSettings.UNFOLD_TIME,
+                LayoutSettings.FIX_CORNERS)), "settings in the agreed order: " + order);
+        require(highlight != null, "selected highlight setting registered");
+        require(highlight.get(2).equals("Radio"), "selected highlight is a radio");
+        require(SelectedHighlight.DEFAULT == SelectedHighlight.ANIMATED, "animated is the default highlight");
+        require(highlight.get(3).equals(SelectedHighlight.DEFAULT.label), "csv default matches SelectedHighlight.DEFAULT");
+        require(highlight.get(5).contains(SelectedHighlight.DEFAULT.label + " (default)"), "highlight help names the default");
+        List<String> highlightOptions = new ArrayList<>();
+        for (String option : highlight.get(4).split(",")) highlightOptions.add(option.trim());
+        List<String> highlightLabels = new ArrayList<>();
+        for (SelectedHighlight value : SelectedHighlight.values()) highlightLabels.add(value.label);
+        require(highlightOptions.equals(highlightLabels), "radio options match SelectedHighlight: " + highlightOptions);
+        for (SelectedHighlight value : SelectedHighlight.values()) {
+            require(SelectedHighlight.byLabel(value.label) == value, "label lookup " + value);
         }
-        require(OutlineAnimation.byLabel(null) == OutlineAnimation.DEFAULT, "missing outline animation falls back");
-        require(OutlineAnimation.byLabel("false") == OutlineAnimation.DEFAULT, "unknown outline animation falls back");
+        require(SelectedHighlight.byLabel(null) == SelectedHighlight.DEFAULT, "missing highlight falls back");
+        require(SelectedHighlight.byLabel("Black band") == SelectedHighlight.DEFAULT, "unknown highlight falls back");
+        require(corners != null, "fix corners setting registered");
+        require(corners.get(2).equals("Boolean"), "fix corners is a boolean");
+        require(Boolean.parseBoolean(corners.get(3).toLowerCase()) == LayoutSettings.FIX_CORNERS_DEFAULT, "fix corners default");
+        require(LayoutSettings.FIX_CORNERS_DEFAULT, "fix corners is on by default");
+        require(!corners.get(5).isBlank(), "fix corners help text");
+        require(LayoutSettings.fixCorners((Boolean) null) == LayoutSettings.FIX_CORNERS_DEFAULT, "missing fix corners falls back");
+        require(!LayoutSettings.fixCorners(Boolean.FALSE), "fix corners off kept");
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
-        require(ButtonLayout.DEFAULT == ButtonLayout.FIVE_PER_ROW, "five per row is the default");
+        require(ButtonLayout.DEFAULT == ButtonLayout.UNFOLD, "unfold on hover is the default");
         require(row.get(3).equals(ButtonLayout.DEFAULT.label), "csv default matches ButtonLayout.DEFAULT");
         require(row.get(5).contains(ButtonLayout.DEFAULT.label + " (default)"), "help text names the default");
         List<String> options = new ArrayList<>();

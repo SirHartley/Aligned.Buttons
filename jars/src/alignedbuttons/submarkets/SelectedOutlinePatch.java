@@ -38,16 +38,19 @@ public class SelectedOutlinePatch {
     // after the frame, icon and name, so the outline sits on top
     @After(target = @MethodMatch(methodName = "renderImpl", parameterCount = 1))
     public static void afterRender(AfterContext context) {
+        SelectedHighlight highlight = LayoutSettings.selectedHighlight();
+        if (highlight == SelectedHighlight.OFF) return;
         ButtonAPI button = RenderPanels.submarketButton(context);
         if (button == null || !button.isHighlighted() || !(context.getSelf() instanceof UIComponentAPI panel)) return;
         // base, not bright: an unset bright color is the base tinted toward the ui cyan, which turns grays blue
         Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBaseUIColor());
         float alpha = (Float) context.getArg(0);
-        switch (LayoutSettings.outlineAnimation()) {
-            case OFF -> draw(panel.getPosition(), new Color[]{Color.BLACK, color, mix(Color.WHITE, color, WHITE_TINT)},
+        if (highlight == SelectedHighlight.BRIGHT_BAND) {
+            draw(panel.getPosition(), new Color[]{Color.BLACK, color, mix(Color.WHITE, color, WHITE_TINT)},
                     STATIC_ALPHA, null, 0, alpha);
-            case BLACK_BAND -> draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK},
-                    ANIMATED_ALPHA, color, BAND_RING, alpha);
+        } else {
+            draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK}, ANIMATED_ALPHA, color,
+                    BAND_RING, alpha);
         }
     }
 

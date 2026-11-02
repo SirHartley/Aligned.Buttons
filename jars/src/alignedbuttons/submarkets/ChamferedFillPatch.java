@@ -23,7 +23,8 @@ public class ChamferedFillPatch {
     @RedirectMethodCall(target = @MethodMatch(methodName = "renderImpl", parameterCount = 1),
             call = @MethodMatch(parameterCount = 3, returnType = void.class))
     public static void background(MethodCallContext context) {
-        if (RenderPanels.submarketButton(context) == null || !(context.getSelf() instanceof UIComponentAPI panel)
+        if (!LayoutSettings.fixCorners() || RenderPanels.submarketButton(context) == null
+                || !(context.getSelf() instanceof UIComponentAPI panel)
                 || !(context.getCallArg(1) instanceof Color color) || !(context.getCallArg(2) instanceof Float alpha)) {
             context.call();
             return;
@@ -39,7 +40,8 @@ public class ChamferedFillPatch {
             call = @MethodMatch(parameterTypes = {float.class, float.class, float.class, float.class, Color.class,
                     float.class}, returnType = void.class))
     public static void overlay(MethodCallContext context) {
-        if (RenderPanels.submarketButton(context) == null || !(context.getSelf() instanceof UIComponentAPI panel)
+        if (!LayoutSettings.fixCorners() || RenderPanels.submarketButton(context) == null
+                || !(context.getSelf() instanceof UIComponentAPI panel)
                 || !covers(panel.getPosition(), context)) {
             context.call();
             return;
