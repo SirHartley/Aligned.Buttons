@@ -31,7 +31,7 @@ The storage button always sits at the right end of the last row.
 
 **Unfold time** (LunaLib): seconds Unfold on hover takes to open a button fully, 0 to 1, default 0.1. 0 opens it at once.
 
-**Animated outline** (LunaLib, off by default): four white highlights run clockwise around the inner edge of the selected button's outline, one lap every 4.4 s, and that edge turns a lighter shade of the submarket color so they show.
+**Animated outline** (LunaLib, off by default): the selected button's outline turns into a soft 3 px black band (outer and inner px at half alpha) and four highlights in the faction's color run clockwise along its middle px, one lap every 4.4 s.
 
 A change to any setting applies the next time the screen opens.
 
