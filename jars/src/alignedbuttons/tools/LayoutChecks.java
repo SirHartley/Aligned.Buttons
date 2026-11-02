@@ -130,7 +130,9 @@ public final class LayoutChecks {
         }
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
-        require(row.get(3).equals(ButtonLayout.STRETCHED.label), "stretched is the default");
+        require(ButtonLayout.DEFAULT == ButtonLayout.FIVE_PER_ROW, "five per row is the default");
+        require(row.get(3).equals(ButtonLayout.DEFAULT.label), "csv default matches ButtonLayout.DEFAULT");
+        require(row.get(5).contains(ButtonLayout.DEFAULT.label + " (default)"), "help text names the default");
         List<String> options = new ArrayList<>();
         for (String option : row.get(4).split(",")) options.add(option.trim());
         List<String> labels = new ArrayList<>();
@@ -140,8 +142,8 @@ public final class LayoutChecks {
         for (ButtonLayout layout : ButtonLayout.values()) {
             require(ButtonLayout.byLabel(layout.label) == layout, "label lookup " + layout);
         }
-        require(ButtonLayout.byLabel(null) == ButtonLayout.STRETCHED, "missing value falls back");
-        require(ButtonLayout.byLabel("x") == ButtonLayout.STRETCHED, "unknown value falls back");
+        require(ButtonLayout.byLabel(null) == ButtonLayout.DEFAULT, "missing value falls back");
+        require(ButtonLayout.byLabel("x") == ButtonLayout.DEFAULT, "unknown value falls back");
     }
 
     // quoted cells only, luna's csv has no escaped quotes
