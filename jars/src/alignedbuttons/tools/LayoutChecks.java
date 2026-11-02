@@ -235,8 +235,8 @@ public final class LayoutChecks {
         require(white.getRed() < 255 && white.getGreen() < 255 && white.getBlue() == 255
                 && white.getRed() >= 240 && white.getGreen() >= 225, "static inner ring is white with a slight purple shift: " + white);
         float[] soft = SelectedOutlinePatch.ANIMATED_ALPHA;
-        require(soft.length == 3 && soft[0] < soft[1] && soft[2] < soft[1] && soft[1] == 1f,
-                "animated band: outer and inner px lighter than the middle");
+        require(soft.length == 3 && soft[0] == 0f && soft[1] == 1f && soft[2] > 0f && soft[2] < soft[1],
+                "animated band: no outer px, solid middle, lighter inner px");
         require(SelectedOutlinePatch.HIGHLIGHT_RING == 1, "highlights run on the middle px");
     }
 
