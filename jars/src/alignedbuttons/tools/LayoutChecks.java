@@ -2,9 +2,11 @@ package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
 import alignedbuttons.submarkets.LayoutSettings;
+import alignedbuttons.submarkets.SelectedOutlinePatch;
 import alignedbuttons.submarkets.SubmarketGrid;
 import alignedbuttons.submarkets.UnfoldRows;
 
+import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public final class LayoutChecks {
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
         require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px icon buttons");
         checkFit();
+        checkOutlineColor();
         checkSettings();
         System.out.println("Layout: " + checks + " checks passed");
     }
@@ -208,6 +211,18 @@ public final class LayoutChecks {
                 "long line cut to fit: " + lines[0]);
         require(!lines[0].contains(" " + SubmarketGrid.ELLIPSIS), "no space before the dots: " + lines[0]);
         require(SubmarketGrid.fit("Market", 10f, measure).isEmpty(), "nothing fits");
+    }
+
+    private static void checkOutlineColor() {
+        Color purple = SelectedOutlinePatch.saturated(new Color(168, 118, 224));
+        require(Math.abs(purple.getRed() - 120) <= 1 && purple.getGreen() == 0 && purple.getBlue() == 255,
+                "purple fully saturated: " + purple);
+        float[] hsb = Color.RGBtoHSB(40, 90, 160, null);
+        Color blue = SelectedOutlinePatch.saturated(new Color(40, 90, 160));
+        float[] out = Color.RGBtoHSB(blue.getRed(), blue.getGreen(), blue.getBlue(), null);
+        require(Math.abs(out[0] - hsb[0]) < 0.01f && out[1] == 1f && out[2] == 1f, "hue kept, full saturation and value");
+        Color gray = SelectedOutlinePatch.saturated(new Color(128, 128, 128));
+        require(gray.getRed() == gray.getGreen() && gray.getGreen() == gray.getBlue(), "gray stays gray: " + gray);
     }
 
     private static void checkSettings() throws Exception {
