@@ -28,7 +28,11 @@ public class SelectedOutlinePatch {
     // rings from the tile edge inwards, alpha 0 skips a ring; the animated band leaves the outer px to the vanilla frame
     private static final float[] STATIC_ALPHA = {1f, 1f, 1f};
     public static final float[] ANIMATED_ALPHA = {0f, 1f, 0.5f};
-    public static final int HIGHLIGHT_RING = 1;
+    public static final int BAND_RING = 1;
+    public static final int WHITE_RING = 2;
+    // white ring motes closer than this in brightness to the ring use the faction color darkened to DARK
+    public static final float MIN_CONTRAST = 0.35f;
+    public static final float DARK = 0.35f;
     // like the vanilla selected weapon slot: four highlights a quarter lap apart, clockwise, one lap in 4.4 s
     public static final int HIGHLIGHTS = 4;
     public static final float LAP_SECONDS = 4.4f;
@@ -43,12 +47,26 @@ public class SelectedOutlinePatch {
         // base, not bright: an unset bright color is the base tinted toward the ui cyan, which turns grays blue
         Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBaseUIColor());
         float alpha = (Float) context.getArg(0);
-        if (LayoutSettings.animatedOutline()) {
-            draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK}, ANIMATED_ALPHA, color, alpha);
-        } else {
-            draw(panel.getPosition(), new Color[]{Color.BLACK, color, mix(Color.WHITE, color, WHITE_TINT)},
-                    STATIC_ALPHA, null, alpha);
+        Color white = mix(Color.WHITE, color, WHITE_TINT);
+        Color[] rings = {Color.BLACK, color, white};
+        switch (LayoutSettings.outlineAnimation()) {
+            case OFF -> draw(panel.getPosition(), rings, STATIC_ALPHA, null, 0, alpha);
+            case BLACK_BAND -> draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK},
+                    ANIMATED_ALPHA, color, BAND_RING, alpha);
+            case WHITE_RING -> draw(panel.getPosition(), rings, STATIC_ALPHA, moteColor(color, white), WHITE_RING, alpha);
         }
+    }
+
+    // darkening keeps the hue, inverting would turn a purple mote green
+    public static Color moteColor(Color mote, Color ring) {
+        if (Math.abs(luma(mote) - luma(ring)) >= MIN_CONTRAST) return mote;
+        return new Color(Math.round(mote.getRed() * DARK), Math.round(mote.getGreen() * DARK),
+                Math.round(mote.getBlue() * DARK));
+    }
+
+    // rec 709 weights on 0 to 1 channels, close enough to judge contrast
+    public static float luma(Color color) {
+        return (0.2126f * color.getRed() + 0.7152f * color.getGreen() + 0.0722f * color.getBlue()) / 255f;
     }
 
     // a gray keeps its own brightness, at full brightness it would be white and merge with the inner ring
@@ -69,8 +87,9 @@ public class SelectedOutlinePatch {
         return (float) (1.0 - (lap - Math.floor(lap)));
     }
 
-    // highlight null draws the static outline
-    private static void draw(PositionAPI position, Color[] rings, float[] ringAlpha, Color highlight, float alpha) {
+    // highlight null draws no motes
+    private static void draw(PositionAPI position, Color[] rings, float[] ringAlpha, Color highlight, int highlightRing,
+                             float alpha) {
         float x0 = position.getX();
         float y0 = position.getY();
         float x1 = x0 + position.getWidth();
@@ -89,7 +108,7 @@ public class SelectedOutlinePatch {
                     quad(color, a, a, ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1));
         }
         if (highlight != null) {
-            OutlineRing path = OutlineRing.of(x0, y0, x1, y1, HIGHLIGHT_RING);
+            OutlineRing path = OutlineRing.of(x0, y0, x1, y1, highlightRing);
             float head = lapPosition(System.nanoTime() / 1e9);
             for (int i = 0; i < HIGHLIGHTS; i++) {
                 float from = head + (float) i / HIGHLIGHTS;

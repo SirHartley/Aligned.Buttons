@@ -2,6 +2,7 @@ package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
 import alignedbuttons.submarkets.LayoutSettings;
+import alignedbuttons.submarkets.OutlineAnimation;
 import alignedbuttons.submarkets.OutlineRing;
 import alignedbuttons.submarkets.SelectedOutlinePatch;
 import alignedbuttons.submarkets.SubmarketGrid;
@@ -237,7 +238,21 @@ public final class LayoutChecks {
         float[] soft = SelectedOutlinePatch.ANIMATED_ALPHA;
         require(soft.length == 3 && soft[0] == 0f && soft[1] == 1f && soft[2] > 0f && soft[2] < soft[1],
                 "animated band: no outer px, solid middle, lighter inner px");
-        require(SelectedOutlinePatch.HIGHLIGHT_RING == 1, "highlights run on the middle px");
+        require(SelectedOutlinePatch.BAND_RING == 1, "black band motes run on the middle px");
+        require(SelectedOutlinePatch.WHITE_RING == 2, "white ring motes run on the inner px");
+        Color ring = SelectedOutlinePatch.mix(Color.WHITE, purple, SelectedOutlinePatch.WHITE_TINT);
+        require(SelectedOutlinePatch.moteColor(purple, ring).equals(purple), "purple motes keep their color on white");
+        Color gray150 = new Color(150, 150, 150);
+        Color grayRing = SelectedOutlinePatch.mix(Color.WHITE, gray150, SelectedOutlinePatch.WHITE_TINT);
+        require(SelectedOutlinePatch.moteColor(gray150, grayRing).equals(gray150), "gray motes keep their color on white");
+        Color yellow = SelectedOutlinePatch.saturated(new Color(250, 240, 120));
+        Color yellowRing = SelectedOutlinePatch.mix(Color.WHITE, yellow, SelectedOutlinePatch.WHITE_TINT);
+        Color yellowMote = SelectedOutlinePatch.moteColor(yellow, yellowRing);
+        float[] yellowHsb = Color.RGBtoHSB(yellow.getRed(), yellow.getGreen(), yellow.getBlue(), null);
+        float[] moteHsb = Color.RGBtoHSB(yellowMote.getRed(), yellowMote.getGreen(), yellowMote.getBlue(), null);
+        require(Math.abs(SelectedOutlinePatch.luma(yellowMote) - SelectedOutlinePatch.luma(yellowRing))
+                >= SelectedOutlinePatch.MIN_CONTRAST && Math.abs(moteHsb[0] - yellowHsb[0]) < 0.02f,
+                "yellow motes on white are darkened and keep their hue: " + yellowMote);
     }
 
     private static void checkOutlineRing() {
@@ -284,13 +299,13 @@ public final class LayoutChecks {
                 + "minValue,maxValue,tab"), "luna header");
         List<String> row = null;
         List<String> time = null;
-        List<String> animated = null;
+        List<String> animation = null;
         for (String line : lines.subList(1, lines.size())) {
             List<String> cells = cells(line);
             require(cells.size() == 9, "nine luna columns: " + cells.get(0));
             if (cells.get(0).equals(LayoutSettings.LAYOUT)) row = cells;
             if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
-            if (cells.get(0).equals(LayoutSettings.ANIMATED_OUTLINE)) animated = cells;
+            if (cells.get(0).equals(LayoutSettings.OUTLINE_ANIMATION)) animation = cells;
         }
         require(time != null, "unfold time setting registered");
         require(time.get(2).equals("Double"), "unfold time is a double");
@@ -304,15 +319,21 @@ public final class LayoutChecks {
         require(LayoutSettings.unfoldTime(-1.0) == LayoutSettings.UNFOLD_TIME_MIN, "time clamped at the minimum");
         require(LayoutSettings.unfoldTime(5.0) == LayoutSettings.UNFOLD_TIME_MAX, "time clamped at the maximum");
         require(LayoutSettings.unfoldTime(0.3) == 0.3f, "time kept");
-        require(animated != null, "animated outline setting registered");
-        require(animated.get(2).equals("Boolean"), "animated outline is a boolean");
-        require(Boolean.parseBoolean(animated.get(3).toLowerCase()) == LayoutSettings.ANIMATED_OUTLINE_DEFAULT,
-                "animated outline default");
-        require(!LayoutSettings.ANIMATED_OUTLINE_DEFAULT, "animated outline is off by default");
-        require(!animated.get(5).isBlank(), "animated outline help text");
-        require(LayoutSettings.animatedOutline((Boolean) null) == LayoutSettings.ANIMATED_OUTLINE_DEFAULT,
-                "missing animated outline falls back");
-        require(LayoutSettings.animatedOutline(Boolean.TRUE), "animated outline kept");
+        require(animation != null, "outline animation setting registered");
+        require(animation.get(2).equals("Radio"), "outline animation is a radio");
+        require(OutlineAnimation.DEFAULT == OutlineAnimation.OFF, "outline animation is off by default");
+        require(animation.get(3).equals(OutlineAnimation.DEFAULT.label), "csv default matches OutlineAnimation.DEFAULT");
+        List<String> animationOptions = new ArrayList<>();
+        for (String option : animation.get(4).split(",")) animationOptions.add(option.trim());
+        List<String> animationLabels = new ArrayList<>();
+        for (OutlineAnimation value : OutlineAnimation.values()) animationLabels.add(value.label);
+        require(animationOptions.equals(animationLabels), "radio options match OutlineAnimation: " + animationOptions);
+        require(!animation.get(5).isBlank(), "outline animation help text");
+        for (OutlineAnimation value : OutlineAnimation.values()) {
+            require(OutlineAnimation.byLabel(value.label) == value, "label lookup " + value);
+        }
+        require(OutlineAnimation.byLabel(null) == OutlineAnimation.DEFAULT, "missing outline animation falls back");
+        require(OutlineAnimation.byLabel("false") == OutlineAnimation.DEFAULT, "unknown outline animation falls back");
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
         require(ButtonLayout.DEFAULT == ButtonLayout.FIVE_PER_ROW, "five per row is the default");
