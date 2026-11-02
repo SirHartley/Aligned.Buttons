@@ -23,6 +23,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Unfold time has no effect | `data/config/LunaSettings.csv` `aligned_buttons_unfold_time` -> `LayoutSettings.unfoldTime` -> `UnfoldRows.unfoldTime` -> `UnfoldRows.step` |
 | Cargo or fleet panel overlaps the strip | [strip height contract](#vanilla-strip) |
 | Selected button has no outline, or the wrong color | `SelectedOutlinePatch.afterRender -> RenderPanels.submarketButton -> ButtonAPI.isHighlighted -> SubmarketAPI.getFaction().getBaseUIColor() -> SelectedOutlinePatch.saturated` |
+| Square dark corners poking out of a submarket button's cut corners | `ChamferedFillPatch.background` / `overlay -> OutlineRing.of(..., 0).outer` |
 | Stray 1 px line right of an icon only button while it glows | `ButtonHighlightPatch.skipNegativeFill`; [highlight patch target](#patch-target) |
 
 ## Registration and lifecycle
@@ -30,7 +31,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Registry / hook | Owners |
 |---|---|
 | `mod_info.json` | No `modPlugin`; jar `jars/AlignedButtons.jar`; dependencies PatchLib, LunaLib; `utility` because nothing is saved |
-| PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch`, `submarkets/SelectedOutlinePatch` and `submarkets/LabelClipPatch` when the button render panel class loads; nothing is registered by hand |
+| PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch`, `submarkets/SelectedOutlinePatch`, `submarkets/LabelClipPatch` and `submarkets/ChamferedFillPatch` when the button render panel class loads; nothing is registered by hand |
 | `data/config/LunaSettings.csv` | The layout, unfold time and animated outline settings and their help text |
 | `data/config/version/version_files.csv` | Version Checker entry for `AlignedButtons.version` |
 
@@ -67,6 +68,7 @@ Use `rg --files jars/src/alignedbuttons` for the complete inventory.
 | `submarkets/SelectedOutlinePatch.java` | `@After` on the button render panel's `renderImpl`: draws three 1 px rings with cut corners from the tile edge inwards: black, the submarket faction's base UI color (the color vanilla gives that button's frame) at full saturation and value (`saturated`; below 3 % saturation the color is a gray and keeps its own brightness, because a gray at full brightness would be white and merge with the white inner ring), and white mixed 10 % toward that color (`WHITE_TINT`), around the selected (highlighted) submarket button, on top of the frame, icon and name. With the animated outline on, the three rings are black at alpha 0.5, 1 and 0.5 (`ANIMATED_ALPHA`) and four highlights in the saturated color, each fading over 8% of a lap behind its head, run clockwise on the middle ring (`HIGHLIGHT_RING`) one lap per 4.4 s (`System.nanoTime`, so they also move while the game is paused) |
 | `submarkets/OutlineRing.java` | Outline geometry, no game types: one 1 px ring as two cut corner octagons, its path length, and `pieces`, which splits any lap range (wrapping past 1) into quads with their position in the range for fading |
 | `submarkets/LabelClipPatch.java` | Redirect around the name label's `render` in the button render panel's `renderImpl`: clips it with `glScissor` to the tile, 4 px inside each side edge, so a growing `UNFOLD` tile reveals its name instead of fading it in |
+| `submarkets/ChamferedFillPatch.java` | Two redirects in the button render panel's `renderImpl` for submarket buttons: the dark background fill and the full size disabled overlay draw as an octagon with the frame's 3 px corner cut instead of a square |
 | `submarkets/RenderPanels.java` | Reads the button off a render panel (`button` field) and returns it only when it carries a `SubmarketAPI` |
 | `submarkets/ButtonHighlightPatch.java` | Redirect in the button render panel's `renderImpl`: skips a rectangle fill with a negative width, which only the highlight strip of a 72 px icon tile has |
 
@@ -88,6 +90,7 @@ Evidence: decompiled `0.98a-RC8` from the `starsector-knowledge` skill. Obfuscat
 - Resizing the strip does not rebuild it: neither the strip class nor its base panel overrides `sizeChanged`.
 - The strip declares `advanceImpl(float)`, called every frame with the frame time in seconds while the screen is open. The cargo screen selects a submarket inside the constructor, the fleet screen calls `selectFirst()` right after it, so `UnfoldStrip` reads the selected (highlighted) button on its first advance and opens it without animation.
 - `SettingsAPI.getMouseX/Y` and `PositionAPI.getX/Y` use the same virtual screen coordinates with y up from the bottom; the engine's own `containsMouse` compares them directly.
+- The render panel starts `renderImpl` with a black fill of the whole panel at 0.67 times the render alpha (`O.o00000(position, Color.black, alpha)` on `0.98a-RC8`, which enables blend with `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`), and a disabled button ends with a full panel fill through `O.new(x, y, w, h, color, alpha)` after `renderImpl` itself set `glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)`. Both are square, while the frame lines cut each corner by 3 px, so the fill's corners show outside the frame.
 - The render panel draws the name with the label's own `render(float)` as the last step before the border lines. `LabelClipPatch` wraps that one call in a scissor box: virtual coordinates times `getScreenWidthPixels() / getScreenWidth()` (and the height pair), which is the scale the vanilla clip stack uses, intersected with any scissor already active, inside `glPushAttrib(GL_SCISSOR_BIT)` / `glPopAttrib`. On a 72 px folded tile the name starts 78 px in and the clip ends 68 px in, so it is fully hidden; on an open tile `fit` already cut it to the room left of the clip.
 
 ### Patch target
@@ -120,6 +123,12 @@ Evidence: decompiled `0.98a-RC8` from the `starsector-knowledge` skill. Obfuscat
 
 - Same class match as `ButtonHighlightPatch`. `@RedirectMethodCall` in `renderImpl` on `render(float)` with `owner = @ClassMatch(subtype = LabelAPI.class)`: the label class declares `render`, the icon's `render` is declared on a base class that is no `LabelAPI`, so only the name call matches. Always calls down; only buttons carrying a `SubmarketAPI` get the scissor.
 - After a game update, check that the name is still drawn by a `LabelAPI` `render(float)` call inside `renderImpl`.
+
+`ChamferedFillPatch`:
+
+- Same class match as `ButtonHighlightPatch`. `background`: `@RedirectMethodCall` in `renderImpl` on the only call there with 3 parameters returning `void` (the other 3 parameter calls return a `Color`); it sets the same blend state as the vanilla fill and draws the octagon instead of calling down. `overlay`: the `(float, float, float, float, Color, float)` call shape that `ButtonHighlightPatch` also redirects; it only takes the call when the rectangle covers the whole panel (the disabled overlay) and keeps the caller's blend, every other call passes on. The two patches' conditions never overlap: the highlight strip is never full size.
+- Buttons without a `SubmarketAPI` (Colony Info) call down unchanged.
+- After a game update, check that the background is still the only 3 parameter `void` call in `renderImpl` and that the overlay still covers the whole panel.
 
 ### Shared constraints
 
