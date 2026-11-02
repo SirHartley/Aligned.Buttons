@@ -2,7 +2,7 @@
 
 A Starsector mod that tidies the submarket buttons (Open Market, Black Market, Military Market, Storage and the ones other mods add) above the cargo and fleet screens.
 
-In vanilla the buttons have a fixed width, so a row ends short of the panel edge, and the storage button is pinned to the bottom right corner where it lines up with nothing. With this mod the buttons form an even grid that fills each row exactly, five to a row by default, and the storage button sits in the last column of the last row. The selected submarket's button gets a 3 px outline: black, then its faction's color at full saturation (a gray faction keeps its gray), then white. A setting switches to the vanilla number of buttons per row, to icon only buttons, or to icon buttons that unfold under the cursor.
+In vanilla the buttons have a fixed width, so a row ends short of the panel edge, and the storage button is pinned to the bottom right corner where it lines up with nothing. With this mod the buttons form an even grid that fills each row exactly, five to a row by default, and the storage button sits in the last column of the last row. The selected submarket's button gets a 3 px outline: black, then its faction's color at full saturation (a gray faction keeps its gray), then white with a slight shift toward that color. A setting switches to the vanilla number of buttons per row, to icon only buttons, or to icon buttons that unfold under the cursor.
 
 ## Requirements
 

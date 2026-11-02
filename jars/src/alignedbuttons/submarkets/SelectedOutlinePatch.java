@@ -23,6 +23,8 @@ public class SelectedOutlinePatch {
 
     // below this the faction color has no real hue to saturate; pale tints above it still have one
     public static final float GRAY = 0.03f;
+    // the static inner ring is white shifted this far toward the faction color
+    public static final float WHITE_TINT = 0.1f;
     // rings from the tile edge inwards; the animated band is soft black with the highlights on its middle ring
     private static final float[] STATIC_ALPHA = {1f, 1f, 1f};
     public static final float[] ANIMATED_ALPHA = {0.5f, 1f, 0.5f};
@@ -44,7 +46,8 @@ public class SelectedOutlinePatch {
         if (LayoutSettings.animatedOutline()) {
             draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK}, ANIMATED_ALPHA, color, alpha);
         } else {
-            draw(panel.getPosition(), new Color[]{Color.BLACK, color, Color.WHITE}, STATIC_ALPHA, null, alpha);
+            draw(panel.getPosition(), new Color[]{Color.BLACK, color, mix(Color.WHITE, color, WHITE_TINT)},
+                    STATIC_ALPHA, null, alpha);
         }
     }
 
@@ -52,6 +55,12 @@ public class SelectedOutlinePatch {
     public static Color saturated(Color color) {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
         return hsb[1] < GRAY ? new Color(color.getRed(), color.getGreen(), color.getBlue()) : Color.getHSBColor(hsb[0], 1f, 1f);
+    }
+
+    public static Color mix(Color from, Color to, float amount) {
+        return new Color(Math.round(from.getRed() + (to.getRed() - from.getRed()) * amount),
+                Math.round(from.getGreen() + (to.getGreen() - from.getGreen()) * amount),
+                Math.round(from.getBlue() + (to.getBlue() - from.getBlue()) * amount));
     }
 
     // head of highlight 0 as a fraction of the lap; rings run counterclockwise, so clockwise counts down

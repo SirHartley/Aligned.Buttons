@@ -231,6 +231,9 @@ public final class LayoutChecks {
         Color pale = SelectedOutlinePatch.saturated(new Color(207, 226, 230));
         float[] paleHsb = Color.RGBtoHSB(pale.getRed(), pale.getGreen(), pale.getBlue(), null);
         require(paleHsb[1] == 1f && pale.getRed() < 40, "pale tint is saturated: " + pale);
+        Color white = SelectedOutlinePatch.mix(Color.WHITE, purple, SelectedOutlinePatch.WHITE_TINT);
+        require(white.getRed() < 255 && white.getGreen() < 255 && white.getBlue() == 255
+                && white.getRed() >= 240 && white.getGreen() >= 225, "static inner ring is white with a slight purple shift: " + white);
         float[] soft = SelectedOutlinePatch.ANIMATED_ALPHA;
         require(soft.length == 3 && soft[0] < soft[1] && soft[2] < soft[1] && soft[1] == 1f,
                 "animated band: outer and inner px lighter than the middle");
