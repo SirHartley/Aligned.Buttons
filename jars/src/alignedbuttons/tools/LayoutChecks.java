@@ -1,6 +1,7 @@
 package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
+import alignedbuttons.submarkets.LayoutSettings;
 import alignedbuttons.submarkets.SubmarketGrid;
 import alignedbuttons.submarkets.UnfoldRows;
 
@@ -16,6 +17,8 @@ public final class LayoutChecks {
     private static final float HEIGHT = 48f;
     private static final float VANILLA_WIDTH = 194f;
     private static final float[] WIDTHS = {450f, 700f, 903f, 1000f, 1260f, 1900f};
+    private static final float[] UNFOLD_TIMES = {0f, LayoutSettings.UNFOLD_TIME_DEFAULT, 0.2f,
+            LayoutSettings.UNFOLD_TIME_MAX};
 
     private static int checks;
 
@@ -35,8 +38,10 @@ public final class LayoutChecks {
         for (float width : WIDTHS) {
             for (int count = 1; count <= 12; count++) {
                 checkVanillaRows(width, count);
-                checkUnfold(width, count, count - 1);
-                checkUnfold(width, count, -1);
+                for (float time : UNFOLD_TIMES) {
+                    checkUnfold(width, count, count - 1, time);
+                    checkUnfold(width, count, -1, time);
+                }
             }
         }
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
@@ -113,20 +118,21 @@ public final class LayoutChecks {
         require(grid.rows() == rows + 1, "vanilla row count: " + width + " px, " + count + " buttons");
     }
 
-    private static void checkUnfold(float width, int count, int storage) {
-        String name = "unfold, " + width + " px, " + count + " buttons, storage " + storage;
+    private static void checkUnfold(float width, int count, int storage, float time) {
+        String name = "unfold " + time + " s, " + width + " px, " + count + " buttons, storage " + storage;
         SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.UNFOLD, width, HEIGHT, VANILLA_WIDTH, count, storage);
         float folded = SubmarketGrid.iconOnlyWidth(HEIGHT);
         float step = SubmarketGrid.GAP + folded;
         require((grid.columns - 1) * step + VANILLA_WIDTH <= width, "a full row fits: " + name);
         require(grid.columns * step + VANILLA_WIDTH > width, "as many tiles as fit: " + name);
-        UnfoldRows rows = new UnfoldRows(grid, VANILLA_WIDTH);
+        UnfoldRows rows = new UnfoldRows(grid, VANILLA_WIDTH, time);
         checkUnfoldRows(rows, name);
         float frame = 1f / 60f;
+        int frames = Math.max(1, Math.round(time / frame));
         boolean several = false;
         for (int i = 0; i < count; i++) {
             rows.aim(i);
-            for (int f = 0; f < 3; f++) {
+            for (int f = 0; f < Math.max(1, frames / 4); f++) {
                 rows.step(frame);
                 checkUnfoldRows(rows, name);
                 int moving = 0;
@@ -136,18 +142,22 @@ public final class LayoutChecks {
                 several |= moving >= 3;
             }
         }
-        require(several || grid.columns < 3 || count < 3, "a cursor sweep moves several tiles at once: " + name);
+        require(several || time == 0f || grid.columns < 3 || count < 3,
+                "a cursor sweep moves several tiles at once: " + name);
         for (int i = 0; i < count; i++) {
             rows.openNow(rows.target(rows.row(i)));
             float x = rows.left(i) + rows.width(i) / 2f;
             float y = rows.top(i) + HEIGHT / 2f;
+            boolean wasOpen = rows.open(i) == 1f;
             rows.aim(i);
-            for (int f = 0; f < 12; f++) {
+            for (int f = 0; f < frames; f++) {
                 require(rows.at(x, y) == i, "unfolding tile stays under the cursor: " + name);
                 rows.step(frame);
                 checkUnfoldRows(rows, name);
+                if (f < frames - 1 && !wasOpen) require(rows.open(i) < 1f, "not open before the unfold time: " + name);
             }
-            require(rows.open(i) == 1f, "open within 0.2 s: " + name);
+            require(rows.at(x, y) == i, "open tile still under the cursor: " + name);
+            require(rows.open(i) == 1f, "open within the unfold time: " + name);
             require(rows.labelOpacity(i, VANILLA_WIDTH - 40f) == 1f, "open tile shows its name: " + name);
         }
         for (int i = 0; i < count; i++) {
@@ -208,11 +218,25 @@ public final class LayoutChecks {
         require(lines.get(0).equals("fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,"
                 + "minValue,maxValue,tab"), "luna header");
         List<String> row = null;
+        List<String> time = null;
         for (String line : lines.subList(1, lines.size())) {
             List<String> cells = cells(line);
             require(cells.size() == 9, "nine luna columns: " + cells.get(0));
-            if (cells.get(0).equals(ButtonLayout.SETTING)) row = cells;
+            if (cells.get(0).equals(LayoutSettings.LAYOUT)) row = cells;
+            if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
         }
+        require(time != null, "unfold time setting registered");
+        require(time.get(2).equals("Double"), "unfold time is a double");
+        require(Float.parseFloat(time.get(3)) == LayoutSettings.UNFOLD_TIME_DEFAULT, "unfold time default");
+        require(Float.parseFloat(time.get(6)) == LayoutSettings.UNFOLD_TIME_MIN, "unfold time minimum");
+        require(Float.parseFloat(time.get(7)) == LayoutSettings.UNFOLD_TIME_MAX, "unfold time maximum");
+        require(LayoutSettings.UNFOLD_TIME_DEFAULT == 0.1f, "unfold time defaults to 0.1 s");
+        require(!time.get(5).isBlank(), "unfold time help text");
+        require(LayoutSettings.unfoldTime((Double) null) == LayoutSettings.UNFOLD_TIME_DEFAULT, "missing time falls back");
+        require(LayoutSettings.unfoldTime(Double.NaN) == LayoutSettings.UNFOLD_TIME_DEFAULT, "nan time falls back");
+        require(LayoutSettings.unfoldTime(-1.0) == LayoutSettings.UNFOLD_TIME_MIN, "time clamped at the minimum");
+        require(LayoutSettings.unfoldTime(5.0) == LayoutSettings.UNFOLD_TIME_MAX, "time clamped at the maximum");
+        require(LayoutSettings.unfoldTime(0.3) == 0.3f, "time kept");
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
         require(ButtonLayout.DEFAULT == ButtonLayout.FIVE_PER_ROW, "five per row is the default");

@@ -4,13 +4,13 @@ import java.util.Arrays;
 
 public final class UnfoldRows {
 
-    // a tile unfolds fully in 0.2 s
-    public static final float SPEED = 5f;
     private static final float SNAP = 1e-4f;
 
     public final SubmarketGrid grid;
     public final float foldedWidth;
     public final float openWidth;
+    // seconds for a full unfold, 0 snaps
+    public final float unfoldTime;
 
     private final int[] rowOf;
     private final int[][] members;
@@ -18,10 +18,11 @@ public final class UnfoldRows {
     private final float[] open;
     private final int[] target;
 
-    public UnfoldRows(SubmarketGrid grid, float openWidth) {
+    public UnfoldRows(SubmarketGrid grid, float openWidth, float unfoldTime) {
         this.grid = grid;
         this.foldedWidth = grid.fixedWidth;
         this.openWidth = Math.max(openWidth, foldedWidth);
+        this.unfoldTime = Math.max(0f, unfoldTime);
         int[] order = new int[grid.count];
         int next = 0;
         for (int i = 0; i < grid.count; i++) {
@@ -79,7 +80,7 @@ public final class UnfoldRows {
             for (int i : members[row]) {
                 if (i != aim) others += open[i];
             }
-            float grow = Math.min(SPEED * amount, 1f - open[aim]);
+            float grow = unfoldTime <= 0f ? 1f - open[aim] : Math.min(amount / unfoldTime, 1f - open[aim]);
             if (others > 0f) {
                 for (int i : members[row]) {
                     if (i != aim) open[i] = Math.max(0f, open[i] - grow * open[i] / others);

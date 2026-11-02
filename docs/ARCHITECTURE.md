@@ -14,11 +14,12 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Change / symptom | Route |
 |---|---|
 | Buttons not moved at all | PatchLib log lines for `SubmarketButtonPatch` (below) -> [patch target](#patch-target) after a game update |
-| Wrong column count, widths, gaps or strip height | `SubmarketButtonPatch.afterConstructor -> ButtonLayout.current -> SubmarketGrid.of -> slot / left / top / buttonWidth / height` |
+| Wrong column count, widths, gaps or strip height | `SubmarketButtonPatch.afterConstructor -> LayoutSettings.layout -> SubmarketGrid.of -> slot / left / top / buttonWidth / height` |
 | Storage button in the wrong place | `SubmarketButtonPatch.storageIndex -> SubmarketGrid.slot` |
 | Names still shown with Icons only, or not cut short with Five per row | `SubmarketButtonPatch.relabel -> SubmarketGrid.labelWidth / fit`; [render panel contract](#vanilla-strip) |
 | Unfold on hover: wrong tile opens, jumps, or names overflow | `SubmarketButtonPatch.afterAdvance -> UnfoldStrip.advance -> UnfoldRows.at / aim / step -> UnfoldStrip.apply -> UnfoldRows.width / left / labelOpacity` |
-| Layout setting has no effect | `data/config/LunaSettings.csv` `aligned_buttons_layout` -> `ButtonLayout.current` -> `ButtonLayout.byLabel` |
+| Layout setting has no effect | `data/config/LunaSettings.csv` `aligned_buttons_layout` -> `LayoutSettings.layout` -> `ButtonLayout.byLabel` |
+| Unfold time has no effect | `data/config/LunaSettings.csv` `aligned_buttons_unfold_time` -> `LayoutSettings.unfoldTime` -> `UnfoldRows.unfoldTime` -> `UnfoldRows.step` |
 | Cargo or fleet panel overlaps the strip | [strip height contract](#vanilla-strip) |
 | Stray 1 px line right of an icon only button while it glows | `ButtonHighlightPatch.skipNegativeFill`; [highlight patch target](#patch-target) |
 
@@ -28,14 +29,14 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 |---|---|
 | `mod_info.json` | No `modPlugin`; jar `jars/AlignedButtons.jar`; dependencies PatchLib, LunaLib; `utility` because nothing is saved |
 | PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch` when the button render panel class loads; nothing is registered by hand |
-| `data/config/LunaSettings.csv` | The layout setting and its help text |
+| `data/config/LunaSettings.csv` | The layout and unfold time settings and their help text |
 | `data/config/version/version_files.csv` | Version Checker entry for `AlignedButtons.version` |
 
 There is no load order: the layout patch runs each time the game builds a submarket strip, which happens when the cargo or fleet screen opens at a market. For `UNFOLD` it stores an `UnfoldStrip` in the strip's PatchLib data under `aligned_buttons_unfold`; the strip's `advanceImpl` hook animates it every frame while the screen is open. Nothing is saved.
 
 ### Settings
 
-`submarkets/ButtonLayout` owns the mod id, the setting id `aligned_buttons_layout` and one constant per radio option; each constant's `label` is the option text in `data/config/LunaSettings.csv` and the value LunaLib saves. `data/config/LunaSettings.csv` owns the help text; its default and option order mirror `ButtonLayout`. `ButtonLayout.current` reads LunaLib once per strip build, which only happens when a screen opens, so there is no listener or cache; a missing or unknown value falls back to `ButtonLayout.DEFAULT` (`FIVE_PER_ROW`), which mirrors the CSV `defaultValue`. LunaLib writes the default into `saves/common/LunaSettings/aligned_buttons.json` on first launch and keeps it there, so changing the default only reaches installs that never stored the setting. A changed setting applies the next time a screen opens.
+`submarkets/LayoutSettings` owns the mod id, the setting ids `aligned_buttons_layout` and `aligned_buttons_unfold_time`, the unfold time default and bounds (0.1 s, 0 to 1), and the readers `layout()` and `unfoldTime()`. `submarkets/ButtonLayout` has one constant per radio option; each constant's `label` is the option text in `data/config/LunaSettings.csv` and the value LunaLib saves. `data/config/LunaSettings.csv` owns the help text; its defaults, bounds and option order mirror those classes. The readers run once per strip build, which only happens when a screen opens, so there is no listener or cache. A missing or unknown layout falls back to `ButtonLayout.DEFAULT` (`FIVE_PER_ROW`); a missing or NaN unfold time falls back to 0.1 and any other value is clamped to 0 to 1. LunaLib writes the default into `saves/common/LunaSettings/aligned_buttons.json` on first launch and keeps it there, so changing the default only reaches installs that never stored the setting. A changed setting applies the next time a screen opens.
 
 ### Build and checks
 
@@ -45,7 +46,7 @@ There is no load order: the layout patch runs each time the game builds a submar
 java -cp "out/release-build-<n>/classes:lib/*" alignedbuttons.tools.LayoutChecks
 ```
 
-It checks `SubmarketGrid` for every `ButtonLayout`, strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, the last column ends on the strip edge, and storage sits in the last column of the last row. Stretched layouts keep 5 px gaps with widths that differ by at most 1 px. Per layout: `STRETCHED` matches the vanilla column and row counts and is never narrower than vanilla; `ICONS` fits as many 72 px tiles as the row allows, keeps the icon exactly centered (4 px each side), and spreads the spare room over gaps of at least 5 px that differ by at most 1 px; `FIVE_PER_ROW` always has five columns. For `UNFOLD` it checks `UnfoldRows` the same way, then sweeps the cursor across every tile (3 frames at 60 fps each) and opens each tile in turn: one tile worth of unfolding per row at every frame, each row keeps its total width, 5 px gaps, storage on the right edge with no overlap, several tiles move at once during a sweep, the opening tile stays under a fixed cursor point, a tile opens fully within 12 frames (0.2 s), and names show only on open tiles. It also checks `SubmarketGrid.fit` with a fixed width per character, and that `LunaSettings.csv` and `ButtonLayout` agree (header, nine columns, `Radio` type, `DEFAULT` is the CSV default and named in the help text, option order, fallback).
+It checks `SubmarketGrid` for every `ButtonLayout`, strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, the last column ends on the strip edge, and storage sits in the last column of the last row. Stretched layouts keep 5 px gaps with widths that differ by at most 1 px. Per layout: `STRETCHED` matches the vanilla column and row counts and is never narrower than vanilla; `ICONS` fits as many 72 px tiles as the row allows, keeps the icon exactly centered (4 px each side), and spreads the spare room over gaps of at least 5 px that differ by at most 1 px; `FIVE_PER_ROW` always has five columns. For `UNFOLD` it checks `UnfoldRows` the same way, then sweeps the cursor across every tile (3 frames at 60 fps each) and opens each tile in turn: one tile worth of unfolding per row at every frame, each row keeps its total width, 5 px gaps, storage on the right edge with no overlap, several tiles move at once during a sweep, the opening tile stays under a fixed cursor point, a tile opens fully on the frame its unfold time is reached and not before, and names show only on open tiles. The `UNFOLD` checks run for unfold times 0, 0.1, 0.2 and 1 s. It also checks `SubmarketGrid.fit` with a fixed width per character, and that `LunaSettings.csv` and `ButtonLayout` agree (header, nine columns, `Radio` type, `DEFAULT` is the CSV default and named in the help text, option order, fallback), and that the unfold time row matches `LayoutSettings` (`Double` type, default 0.1, bounds, help text, fallback and clamping).
 
 ## Source owners
 
@@ -57,8 +58,9 @@ Use `rg --files jars/src/alignedbuttons` for the complete inventory.
 |---|---|
 | `submarkets/SubmarketButtonPatch.java` | The layout patch. `@After` on the strip constructor: collects the buttons, finds storage, sets the strip height, places every button through `SubmarketGrid` and for `ICONS` and `FIVE_PER_ROW` rewrites each name label, or for `UNFOLD` builds an `UnfoldStrip`. `@After` on the strip's `advanceImpl` advances that `UnfoldStrip` |
 | `submarkets/SubmarketGrid.java` | All layout math: column count per `ButtonLayout`, slot per button (storage last column of the last row), column edges (stretched tiles, or for `ICONS` fixed 72 px tiles with the spare room in the gaps), row tops, strip height, the room left for a name and `fit`, which cuts each name line to that room with `...`. No game types, so `LayoutChecks` can run it |
-| `submarkets/ButtonLayout.java` | The layout setting: ids, option labels, `current()` from LunaLib |
-| `submarkets/UnfoldRows.java` | `UNFOLD` math, no game types: rows of tiles (storage last, pinned to the right edge), how far each tile is open (each row sums to 1), the target per row, `step` (the target opens at `SPEED` 5 per second and takes width from the others in proportion to what they hold), positions, hit test and name opacity |
+| `submarkets/ButtonLayout.java` | The layout options and their LunaLib labels, `DEFAULT`, `byLabel` |
+| `submarkets/LayoutSettings.java` | Setting ids, unfold time default and bounds, `layout()` and `unfoldTime()` from LunaLib |
+| `submarkets/UnfoldRows.java` | `UNFOLD` math, no game types: rows of tiles (storage last, pinned to the right edge), how far each tile is open (each row sums to 1), the target per row, `step` (the target opens fully over `unfoldTime` seconds, at once for 0, and takes width from the others in proportion to what they hold), positions, hit test and name opacity |
 | `submarkets/UnfoldStrip.java` | `UNFOLD` state on one strip: weak references to its buttons and name labels, the width each name needs, the cursor test against the strip and `apply`, which moves the buttons and sets label opacity |
 | `submarkets/ButtonHighlightPatch.java` | Redirect in the button render panel's `renderImpl`: skips a rectangle fill with a negative width, which only the highlight strip of a 72 px icon tile has |
 

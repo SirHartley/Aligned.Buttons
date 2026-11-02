@@ -43,12 +43,12 @@ public class SubmarketButtonPatch {
             if (item instanceof ButtonAPI button) buttons.add(button);
         }
         if (buttons.isEmpty()) return;
-        ButtonLayout layout = ButtonLayout.current();
+        ButtonLayout layout = LayoutSettings.layout();
         PositionAPI first = buttons.get(0).getPosition();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));
         if (layout == ButtonLayout.UNFOLD) {
-            unfold(context, buttons, new UnfoldRows(grid, first.getWidth()));
+            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), LayoutSettings.unfoldTime()));
         } else {
             place(context, buttons, grid, layout);
         }

@@ -18,16 +18,20 @@ In vanilla the buttons have a fixed width, so a row ends short of the panel edge
 
 ## Settings
 
-One LunaLib setting, **Submarket button layout**:
+**Submarket button layout** (LunaLib):
 
 | Option | Buttons |
 |---|---|
 | Stretched | The vanilla number of buttons per row, widened to fill the row |
 | Icons only | Icon and border only, as many per row as fit, spaced evenly across the row; the name still shows in the tooltip |
 | Five per row (default) | Five buttons with names in each row; names too long for the button are cut short with `...` |
-| Unfold on hover | Icon buttons with one opened to show its name. The button under the cursor opens in 0.2 s while the open one folds, so the row keeps its width; sweeping the cursor across makes several buttons open part way and fold back. When the cursor leaves, the selected submarket opens again |
+| Unfold on hover | Icon buttons with one opened to show its name. The button under the cursor opens over the **Unfold time** while the open one folds, so the row keeps its width; sweeping the cursor across makes several buttons open part way and fold back. When the cursor leaves, the selected submarket opens again |
 
-The storage button always sits at the right end of the last row. A change applies the next time the screen opens.
+The storage button always sits at the right end of the last row.
+
+**Unfold time** (LunaLib): seconds Unfold on hover takes to open a button fully, 0 to 1, default 0.1. 0 opens it at once.
+
+A change to either setting applies the next time the screen opens.
 
 The mod saves nothing, so it can be added to or removed from an existing save. Version Checker picks up updates through `AlignedButtons.version`.
 
