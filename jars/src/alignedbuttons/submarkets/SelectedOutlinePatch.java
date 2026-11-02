@@ -29,10 +29,6 @@ public class SelectedOutlinePatch {
     private static final float[] STATIC_ALPHA = {1f, 1f, 1f};
     public static final float[] ANIMATED_ALPHA = {0f, 1f, 0.5f};
     public static final int BAND_RING = 1;
-    public static final int WHITE_RING = 2;
-    // white ring motes closer than this in brightness to the ring use the faction color darkened to DARK
-    public static final float MIN_CONTRAST = 0.35f;
-    public static final float DARK = 0.35f;
     // like the vanilla selected weapon slot: four highlights a quarter lap apart, clockwise, one lap in 4.4 s
     public static final int HIGHLIGHTS = 4;
     public static final float LAP_SECONDS = 4.4f;
@@ -47,26 +43,12 @@ public class SelectedOutlinePatch {
         // base, not bright: an unset bright color is the base tinted toward the ui cyan, which turns grays blue
         Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBaseUIColor());
         float alpha = (Float) context.getArg(0);
-        Color white = mix(Color.WHITE, color, WHITE_TINT);
-        Color[] rings = {Color.BLACK, color, white};
         switch (LayoutSettings.outlineAnimation()) {
-            case OFF -> draw(panel.getPosition(), rings, STATIC_ALPHA, null, 0, alpha);
+            case OFF -> draw(panel.getPosition(), new Color[]{Color.BLACK, color, mix(Color.WHITE, color, WHITE_TINT)},
+                    STATIC_ALPHA, null, 0, alpha);
             case BLACK_BAND -> draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK},
                     ANIMATED_ALPHA, color, BAND_RING, alpha);
-            case WHITE_RING -> draw(panel.getPosition(), rings, STATIC_ALPHA, moteColor(color, white), WHITE_RING, alpha);
         }
-    }
-
-    // darkening keeps the hue, inverting would turn a purple mote green
-    public static Color moteColor(Color mote, Color ring) {
-        if (Math.abs(luma(mote) - luma(ring)) >= MIN_CONTRAST) return mote;
-        return new Color(Math.round(mote.getRed() * DARK), Math.round(mote.getGreen() * DARK),
-                Math.round(mote.getBlue() * DARK));
-    }
-
-    // rec 709 weights on 0 to 1 channels, close enough to judge contrast
-    public static float luma(Color color) {
-        return (0.2126f * color.getRed() + 0.7152f * color.getGreen() + 0.0722f * color.getBlue()) / 255f;
     }
 
     // a gray keeps its own brightness, at full brightness it would be white and merge with the inner ring

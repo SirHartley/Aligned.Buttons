@@ -3,8 +3,7 @@ package alignedbuttons.submarkets;
 public enum OutlineAnimation {
 
     OFF("Off"),
-    BLACK_BAND("Black band"),
-    WHITE_RING("White ring");
+    BLACK_BAND("Black band");
 
     // defaultValue in data/config/LunaSettings.csv
     public static final OutlineAnimation DEFAULT = OFF;

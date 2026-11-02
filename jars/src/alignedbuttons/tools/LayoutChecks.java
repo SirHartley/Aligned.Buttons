@@ -225,20 +225,6 @@ public final class LayoutChecks {
         require(soft.length == 3 && soft[0] == 0f && soft[1] == 1f && soft[2] > 0f && soft[2] < soft[1],
                 "animated band: no outer px, solid middle, lighter inner px");
         require(SelectedOutlinePatch.BAND_RING == 1, "black band motes run on the middle px");
-        require(SelectedOutlinePatch.WHITE_RING == 2, "white ring motes run on the inner px");
-        Color ring = SelectedOutlinePatch.mix(Color.WHITE, purple, SelectedOutlinePatch.WHITE_TINT);
-        require(SelectedOutlinePatch.moteColor(purple, ring).equals(purple), "purple motes keep their color on white");
-        Color gray150 = new Color(150, 150, 150);
-        Color grayRing = SelectedOutlinePatch.mix(Color.WHITE, gray150, SelectedOutlinePatch.WHITE_TINT);
-        require(SelectedOutlinePatch.moteColor(gray150, grayRing).equals(gray150), "gray motes keep their color on white");
-        Color yellow = SelectedOutlinePatch.saturated(new Color(250, 240, 120));
-        Color yellowRing = SelectedOutlinePatch.mix(Color.WHITE, yellow, SelectedOutlinePatch.WHITE_TINT);
-        Color yellowMote = SelectedOutlinePatch.moteColor(yellow, yellowRing);
-        float[] yellowHsb = Color.RGBtoHSB(yellow.getRed(), yellow.getGreen(), yellow.getBlue(), null);
-        float[] moteHsb = Color.RGBtoHSB(yellowMote.getRed(), yellowMote.getGreen(), yellowMote.getBlue(), null);
-        require(Math.abs(SelectedOutlinePatch.luma(yellowMote) - SelectedOutlinePatch.luma(yellowRing))
-                >= SelectedOutlinePatch.MIN_CONTRAST && Math.abs(moteHsb[0] - yellowHsb[0]) < 0.02f,
-                "yellow motes on white are darkened and keep their hue: " + yellowMote);
     }
 
     private static void checkOutlineRing() {
