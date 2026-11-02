@@ -36,7 +36,7 @@ public final class LayoutChecks {
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
         require(grid(ButtonLayout.ICONS, 903f).columns == 11, "eleven icon columns at 903 px");
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
-        require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 73f, "73 px icon buttons");
+        require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px icon buttons");
         checkFit();
         checkSettings();
         System.out.println("Layout: " + checks + " checks passed");
@@ -56,8 +56,9 @@ public final class LayoutChecks {
                     require(grid.buttonWidth(column) == SubmarketGrid.iconOnlyWidth(HEIGHT),
                             "icon sized tiles: " + name);
                 }
-                float inset = (grid.buttonWidth(0) - SubmarketGrid.iconWidth(HEIGHT)) / 2f;
-                require(Math.abs(inset - SubmarketGrid.BORDER) <= 0.5f, "icon centered in its tile: " + name);
+                // vanilla draws the icon at x = BORDER, so the right inset must match it exactly
+                float right = grid.buttonWidth(0) - SubmarketGrid.BORDER - SubmarketGrid.iconWidth(HEIGHT);
+                require(right == SubmarketGrid.BORDER, "icon centered in its tile: " + name);
                 require((grid.columns + 1) * (SubmarketGrid.iconOnlyWidth(HEIGHT) + SubmarketGrid.GAP)
                         > grid.width + SubmarketGrid.GAP, "as many icons as fit: " + name);
             }
