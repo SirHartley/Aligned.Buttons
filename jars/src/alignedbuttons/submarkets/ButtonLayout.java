@@ -6,7 +6,8 @@ public enum ButtonLayout {
 
     STRETCHED("Stretched"),
     ICONS("Icons only"),
-    FIVE_PER_ROW("Five per row");
+    FIVE_PER_ROW("Five per row"),
+    UNFOLD("Unfold on hover");
 
     public static final String MOD_ID = "aligned_buttons";
     public static final String SETTING = "aligned_buttons_layout";

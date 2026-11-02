@@ -40,12 +40,21 @@ public final class SubmarketGrid {
                     (int) ((width + GAP) / (iconOnlyWidth(buttonHeight) + GAP)), count, storage,
                     iconOnlyWidth(buttonHeight));
             case FIVE_PER_ROW -> new SubmarketGrid(width, buttonHeight, FIVE, count, storage, 0f);
+            // folded icon tiles plus one tile opened to the vanilla width, positions come from UnfoldRows
+            case UNFOLD -> new SubmarketGrid(width, buttonHeight,
+                    unfoldColumns(width, buttonHeight, Math.max(vanillaWidth, iconOnlyWidth(buttonHeight))),
+                    count, storage, iconOnlyWidth(buttonHeight));
         };
     }
 
     // vanilla wraps once x + width + gap passes the strip width
     public static int vanillaColumns(float width, float buttonWidth) {
         return Math.max(1, (int) (width / (buttonWidth + GAP)));
+    }
+
+    public static int unfoldColumns(float width, float buttonHeight, float openWidth) {
+        float folded = iconOnlyWidth(buttonHeight);
+        return Math.max(1, (int) ((width + GAP - (openWidth - folded)) / (folded + GAP)));
     }
 
     public static float iconWidth(float buttonHeight) {
@@ -87,7 +96,18 @@ public final class SubmarketGrid {
     }
 
     public float labelWidth(int slot) {
-        return buttonWidth(slot) - 2 * BORDER - iconWidth(buttonHeight) - LABEL_PAD;
+        return buttonWidth(slot) - labelInset(buttonHeight);
+    }
+
+    // button width taken by everything but the name: both borders, the icon and the gap after it
+    public static float labelInset(float buttonHeight) {
+        return 2 * BORDER + iconWidth(buttonHeight) + LABEL_PAD;
+    }
+
+    public static float widest(String text, ToDoubleFunction<String> measure) {
+        float widest = 0f;
+        for (String line : text.split("\n", -1)) widest = Math.max(widest, (float) measure.applyAsDouble(line));
+        return widest;
     }
 
     // cuts each line on its own, vanilla names carry a line break

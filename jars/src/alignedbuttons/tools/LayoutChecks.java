@@ -2,6 +2,7 @@ package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
 import alignedbuttons.submarkets.SubmarketGrid;
+import alignedbuttons.submarkets.UnfoldRows;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ public final class LayoutChecks {
 
     public static void main(String[] args) throws Exception {
         for (ButtonLayout layout : ButtonLayout.values()) {
+            if (layout == ButtonLayout.UNFOLD) continue;
             for (float width : WIDTHS) {
                 for (int count = 1; count <= 12; count++) {
                     checkGrid(layout, SubmarketGrid.of(layout, width, HEIGHT, VANILLA_WIDTH, count, count - 1));
@@ -31,10 +33,15 @@ public final class LayoutChecks {
             }
         }
         for (float width : WIDTHS) {
-            for (int count = 1; count <= 12; count++) checkVanillaRows(width, count);
+            for (int count = 1; count <= 12; count++) {
+                checkVanillaRows(width, count);
+                checkUnfold(width, count, count - 1);
+                checkUnfold(width, count, -1);
+            }
         }
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
         require(grid(ButtonLayout.ICONS, 903f).columns == 11, "eleven icon columns at 903 px");
+        require(grid(ButtonLayout.UNFOLD, 903f).columns == 10, "ten unfold columns at 903 px");
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
         require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px icon buttons");
         checkFit();
@@ -104,6 +111,83 @@ public final class LayoutChecks {
         }
         SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.STRETCHED, width, HEIGHT, VANILLA_WIDTH, count, count - 1);
         require(grid.rows() == rows + 1, "vanilla row count: " + width + " px, " + count + " buttons");
+    }
+
+    private static void checkUnfold(float width, int count, int storage) {
+        String name = "unfold, " + width + " px, " + count + " buttons, storage " + storage;
+        SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.UNFOLD, width, HEIGHT, VANILLA_WIDTH, count, storage);
+        float folded = SubmarketGrid.iconOnlyWidth(HEIGHT);
+        float step = SubmarketGrid.GAP + folded;
+        require((grid.columns - 1) * step + VANILLA_WIDTH <= width, "a full row fits: " + name);
+        require(grid.columns * step + VANILLA_WIDTH > width, "as many tiles as fit: " + name);
+        UnfoldRows rows = new UnfoldRows(grid, VANILLA_WIDTH);
+        checkUnfoldRows(rows, name);
+        float frame = 1f / 60f;
+        boolean several = false;
+        for (int i = 0; i < count; i++) {
+            rows.aim(i);
+            for (int f = 0; f < 3; f++) {
+                rows.step(frame);
+                checkUnfoldRows(rows, name);
+                int moving = 0;
+                for (int j = 0; j < count; j++) {
+                    if (rows.open(j) > 0f && rows.open(j) < 1f) moving++;
+                }
+                several |= moving >= 3;
+            }
+        }
+        require(several || grid.columns < 3 || count < 3, "a cursor sweep moves several tiles at once: " + name);
+        for (int i = 0; i < count; i++) {
+            rows.openNow(rows.target(rows.row(i)));
+            float x = rows.left(i) + rows.width(i) / 2f;
+            float y = rows.top(i) + HEIGHT / 2f;
+            rows.aim(i);
+            for (int f = 0; f < 12; f++) {
+                require(rows.at(x, y) == i, "unfolding tile stays under the cursor: " + name);
+                rows.step(frame);
+                checkUnfoldRows(rows, name);
+            }
+            require(rows.open(i) == 1f, "open within 0.2 s: " + name);
+            require(rows.labelOpacity(i, VANILLA_WIDTH - 40f) == 1f, "open tile shows its name: " + name);
+        }
+        for (int i = 0; i < count; i++) {
+            if (rows.open(i) == 0f) {
+                require(rows.labelOpacity(i, SubmarketGrid.labelInset(HEIGHT) + 10f) == 0f,
+                        "folded tile hides its name: " + name);
+            }
+        }
+    }
+
+    private static void checkUnfoldRows(UnfoldRows rows, String name) {
+        SubmarketGrid grid = rows.grid;
+        for (int row = 0; row < rows.rows(); row++) {
+            float sum = 0f;
+            float total = 0f;
+            int size = 0;
+            float end = -SubmarketGrid.GAP;
+            for (int i = 0; i < grid.count; i++) {
+                if (rows.row(i) != row) continue;
+                sum += rows.open(i);
+                total += rows.width(i);
+                size++;
+                require(rows.width(i) >= rows.foldedWidth - 0.01f && rows.width(i) <= rows.openWidth + 0.01f,
+                        "width between folded and open: " + name);
+                require(rows.top(i) == row * (HEIGHT + SubmarketGrid.ROW_GAP), "row top: " + name);
+                if (i == grid.storage) {
+                    require(rows.left(i) + rows.width(i) == grid.width, "storage on the right edge: " + name);
+                } else {
+                    require(Math.abs(rows.left(i) - end - SubmarketGrid.GAP) < 0.01f, "5 px gaps: " + name);
+                    end = rows.left(i) + rows.width(i);
+                }
+            }
+            if (grid.storage >= 0 && rows.row(grid.storage) == row) {
+                require(end + SubmarketGrid.GAP <= rows.left(grid.storage) + 0.01f, "no overlap with storage: " + name);
+            }
+            require(Math.abs(sum - 1f) < 0.001f, "one tile worth of unfolding per row: " + name);
+            float expected = (size - 1) * rows.foldedWidth + rows.openWidth;
+            require(Math.abs(total - expected) < 0.05f, "row keeps its width: " + name);
+            require(end <= grid.width + 0.01f, "inside the strip: " + name);
+        }
     }
 
     private static void checkFit() {

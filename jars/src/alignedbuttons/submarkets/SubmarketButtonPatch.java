@@ -47,25 +47,65 @@ public class SubmarketButtonPatch {
         PositionAPI first = buttons.get(0).getPosition();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));
+        if (layout == ButtonLayout.UNFOLD) {
+            unfold(context, buttons, new UnfoldRows(grid, first.getWidth()));
+        } else {
+            place(context, buttons, grid, layout);
+        }
+        strip.getPosition().setSize(grid.width, grid.height());
+    }
+
+    private static void place(AfterContext context, List<ButtonAPI> buttons, SubmarketGrid grid, ButtonLayout layout) {
         for (int i = 0; i < buttons.size(); i++) {
             ButtonAPI button = buttons.get(i);
             int slot = grid.slot(i);
             button.getPosition().setSize(grid.buttonWidth(slot), grid.buttonHeight)
                     .inTL(grid.left(slot), grid.top(slot));
-            if (layout != ButtonLayout.STRETCHED) relabel(context, button, grid, slot, layout);
+            if (layout == ButtonLayout.STRETCHED) continue;
+            LabelAPI label = label(context, button, grid.buttonWidth(slot), grid.buttonHeight);
+            if (label == null) continue;
+            label.setText(layout == ButtonLayout.ICONS ? ""
+                    : SubmarketGrid.fit(label.getText(), grid.labelWidth(slot), label::computeTextWidth));
         }
-        strip.getPosition().setSize(grid.width, grid.height());
     }
 
-    private static void relabel(AfterContext context, ButtonAPI button, SubmarketGrid grid, int slot,
-                                ButtonLayout layout) {
+    // runs every frame while the cargo or fleet screen is open, only unfold strips carry state
+    @After(target = @MethodMatch(methodName = "advanceImpl", parameterCount = 1))
+    public static void afterAdvance(AfterContext context) {
+        Object state = context.getData().get(UnfoldStrip.KEY);
+        if (!(state instanceof UnfoldStrip unfold) || !(context.getSelf() instanceof UIComponentAPI strip)) return;
+        unfold.advance(strip, (Float) context.getArg(0));
+    }
+
+    private static void unfold(AfterContext context, List<ButtonAPI> buttons, UnfoldRows rows) {
+        for (int i = 0; i < buttons.size(); i++) {
+            if (buttons.get(i).isHighlighted()) rows.openNow(i);
+        }
+        LabelAPI[] labels = new LabelAPI[buttons.size()];
+        float[] needed = new float[buttons.size()];
+        float height = rows.grid.buttonHeight;
+        for (int i = 0; i < buttons.size(); i++) {
+            LabelAPI label = label(context, buttons.get(i), rows.width(i), height);
+            if (label == null) continue;
+            label.setText(SubmarketGrid.fit(label.getText(),
+                    rows.openWidth - SubmarketGrid.labelInset(height), label::computeTextWidth));
+            labels[i] = label;
+            needed[i] = SubmarketGrid.labelInset(height) + SubmarketGrid.widest(label.getText(), label::computeTextWidth);
+        }
+        UnfoldStrip strip = new UnfoldStrip(rows, buttons, labels, needed);
+        strip.apply();
+        context.getData().put(UnfoldStrip.KEY, strip);
+    }
+
+    private static LabelAPI label(AfterContext context, ButtonAPI button, float width, float height) {
         if (!context.hasMethod(BUTTON_PANEL, button)
-                || !(context.getMethod(BUTTON_PANEL, button).call() instanceof UIComponentAPI panel)) return;
+                || !(context.getMethod(BUTTON_PANEL, button).call() instanceof UIComponentAPI panel)) return null;
         // the render panel builds its name label on its first size change, otherwise on the first frame
-        panel.getPosition().setSize(grid.buttonWidth(slot), grid.buttonHeight);
-        if (!context.hasField(LABEL, panel) || !(context.getField(LABEL, panel).get() instanceof LabelAPI label)) return;
-        label.setText(layout == ButtonLayout.ICONS ? ""
-                : SubmarketGrid.fit(label.getText(), grid.labelWidth(slot), label::computeTextWidth));
+        panel.getPosition().setSize(width, height);
+        if (!context.hasField(LABEL, panel) || !(context.getField(LABEL, panel).get() instanceof LabelAPI label)) {
+            return null;
+        }
+        return label;
     }
 
     private static int storageIndex(List<ButtonAPI> buttons) {
