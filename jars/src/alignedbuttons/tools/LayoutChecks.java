@@ -2,6 +2,7 @@ package alignedbuttons.tools;
 
 import alignedbuttons.submarkets.ButtonLayout;
 import alignedbuttons.submarkets.LayoutSettings;
+import alignedbuttons.submarkets.OutlineRing;
 import alignedbuttons.submarkets.SelectedOutlinePatch;
 import alignedbuttons.submarkets.SubmarketGrid;
 import alignedbuttons.submarkets.UnfoldRows;
@@ -53,6 +54,7 @@ public final class LayoutChecks {
         require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px icon buttons");
         checkFit();
         checkOutlineColor();
+        checkOutlineRing();
         checkSettings();
         System.out.println("Layout: " + checks + " checks passed");
     }
@@ -223,6 +225,47 @@ public final class LayoutChecks {
         require(Math.abs(out[0] - hsb[0]) < 0.01f && out[1] == 1f && out[2] == 1f, "hue kept, full saturation and value");
         Color gray = SelectedOutlinePatch.saturated(new Color(128, 128, 128));
         require(gray.getRed() == gray.getGreen() && gray.getGreen() == gray.getBlue(), "gray stays gray: " + gray);
+        Color tint = SelectedOutlinePatch.mix(purple, Color.WHITE, 0.5f);
+        require(!tint.equals(Color.WHITE) && tint.getRed() > purple.getRed() && tint.getBlue() == 255,
+                "animated inner ring is a lighter shade, not white: " + tint);
+    }
+
+    private static void checkOutlineRing() {
+        float[][] boxes = {{0f, 0f, 72f, 48f}, {100f, 20f, 294f, 68f}};
+        for (float[] box : boxes) {
+            for (int ring = 0; ring < 3; ring++) {
+                OutlineRing path = OutlineRing.of(box[0], box[1], box[2], box[3], ring);
+                String name = "ring " + ring + " of " + (box[2] - box[0]) + " px";
+                float cut = Math.max(0f, OutlineRing.CUT - ring * (float) (Math.sqrt(2) - 1));
+                float w = box[2] - box[0] - 2 * ring;
+                float h = box[3] - box[1] - 2 * ring;
+                float expected = 2 * (w - 2 * cut) + 2 * (h - 2 * cut) + 4 * cut * (float) Math.sqrt(2);
+                require(Math.abs(path.length - expected) < 0.01f, "ring length: " + name);
+                require(path.outer[0] == box[0] + ring + cut && path.outer[1] == box[1] + ring, "ring starts: " + name);
+                require(path.inner[1] == box[1] + ring + 1, "ring is 1 px: " + name);
+                for (float[] range : new float[][]{{0f, 1f}, {0.9f, 1.1f}, {-0.3f, -0.2f}, {0.25f, 0.33f}}) {
+                    float[] total = {0f};
+                    float[] last = {-1f};
+                    boolean[] ordered = {true};
+                    path.pieces(range[0], range[1], (ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1, at0, at1) -> {
+                        total[0] += (float) Math.hypot(ox1 - ox0, oy1 - oy0);
+                        ordered[0] &= at0 >= last[0] - 0.0001f && at1 >= at0 && at0 >= 0f && at1 <= 1.0001f;
+                        last[0] = at1;
+                    });
+                    require(Math.abs(total[0] - (range[1] - range[0]) * path.length) < 0.05f,
+                            "pieces cover the range " + range[0] + ".." + range[1] + ": " + name);
+                    require(ordered[0], "range position runs 0 to 1: " + name);
+                }
+            }
+        }
+        float now = SelectedOutlinePatch.lapPosition(10.0);
+        float later = SelectedOutlinePatch.lapPosition(10.0 + SelectedOutlinePatch.LAP_SECONDS / 10.0);
+        float step = now - later;
+        require(Math.abs(step - 0.1f) < 0.0001f || Math.abs(step + 0.9f) < 0.0001f,
+                "head moves a tenth of a lap clockwise in a tenth of the lap time");
+        float lap = Math.abs(SelectedOutlinePatch.lapPosition(SelectedOutlinePatch.LAP_SECONDS * 3)
+                - SelectedOutlinePatch.lapPosition(0));
+        require(lap < 0.0001f || Math.abs(lap - 1f) < 0.0001f, "one lap per LAP_SECONDS");
     }
 
     private static void checkSettings() throws Exception {
@@ -231,11 +274,13 @@ public final class LayoutChecks {
                 + "minValue,maxValue,tab"), "luna header");
         List<String> row = null;
         List<String> time = null;
+        List<String> animated = null;
         for (String line : lines.subList(1, lines.size())) {
             List<String> cells = cells(line);
             require(cells.size() == 9, "nine luna columns: " + cells.get(0));
             if (cells.get(0).equals(LayoutSettings.LAYOUT)) row = cells;
             if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
+            if (cells.get(0).equals(LayoutSettings.ANIMATED_OUTLINE)) animated = cells;
         }
         require(time != null, "unfold time setting registered");
         require(time.get(2).equals("Double"), "unfold time is a double");
@@ -249,6 +294,15 @@ public final class LayoutChecks {
         require(LayoutSettings.unfoldTime(-1.0) == LayoutSettings.UNFOLD_TIME_MIN, "time clamped at the minimum");
         require(LayoutSettings.unfoldTime(5.0) == LayoutSettings.UNFOLD_TIME_MAX, "time clamped at the maximum");
         require(LayoutSettings.unfoldTime(0.3) == 0.3f, "time kept");
+        require(animated != null, "animated outline setting registered");
+        require(animated.get(2).equals("Boolean"), "animated outline is a boolean");
+        require(Boolean.parseBoolean(animated.get(3).toLowerCase()) == LayoutSettings.ANIMATED_OUTLINE_DEFAULT,
+                "animated outline default");
+        require(!LayoutSettings.ANIMATED_OUTLINE_DEFAULT, "animated outline is off by default");
+        require(!animated.get(5).isBlank(), "animated outline help text");
+        require(LayoutSettings.animatedOutline((Boolean) null) == LayoutSettings.ANIMATED_OUTLINE_DEFAULT,
+                "missing animated outline falls back");
+        require(LayoutSettings.animatedOutline(Boolean.TRUE), "animated outline kept");
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
         require(ButtonLayout.DEFAULT == ButtonLayout.FIVE_PER_ROW, "five per row is the default");

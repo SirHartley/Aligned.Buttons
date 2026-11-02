@@ -31,7 +31,9 @@ The storage button always sits at the right end of the last row.
 
 **Unfold time** (LunaLib): seconds Unfold on hover takes to open a button fully, 0 to 1, default 0.1. 0 opens it at once.
 
-A change to either setting applies the next time the screen opens.
+**Animated outline** (LunaLib, off by default): four white highlights run clockwise around the inner edge of the selected button's outline, one lap every 4.4 s, and that edge turns a lighter shade of the submarket color so they show.
+
+A change to any setting applies the next time the screen opens.
 
 The mod saves nothing, so it can be added to or removed from an existing save. Version Checker picks up updates through `AlignedButtons.version`.
 

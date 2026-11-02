@@ -11,6 +11,10 @@ public final class LayoutSettings {
     public static final float UNFOLD_TIME_DEFAULT = 0.1f;
     public static final float UNFOLD_TIME_MIN = 0f;
     public static final float UNFOLD_TIME_MAX = 1f;
+    public static final String ANIMATED_OUTLINE = "aligned_buttons_outline_animated";
+    public static final boolean ANIMATED_OUTLINE_DEFAULT = false;
+
+    private static boolean animatedOutline = ANIMATED_OUTLINE_DEFAULT;
 
     private LayoutSettings() {
     }
@@ -27,5 +31,18 @@ public final class LayoutSettings {
     public static float unfoldTime(Double seconds) {
         if (seconds == null || seconds.isNaN()) return UNFOLD_TIME_DEFAULT;
         return (float) Math.max(UNFOLD_TIME_MIN, Math.min(UNFOLD_TIME_MAX, seconds));
+    }
+
+    // the outline renders every frame, so it reads this copy, refreshed when a strip is built
+    public static boolean animatedOutline() {
+        return animatedOutline;
+    }
+
+    public static void readAnimatedOutline() {
+        animatedOutline = animatedOutline(LunaSettings.getBoolean(MOD_ID, ANIMATED_OUTLINE));
+    }
+
+    public static boolean animatedOutline(Boolean value) {
+        return value != null ? value : ANIMATED_OUTLINE_DEFAULT;
     }
 }
