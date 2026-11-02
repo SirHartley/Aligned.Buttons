@@ -21,42 +21,51 @@ import java.awt.Color;
                 parameterTypes = {String.class, String.class, Color.class, Color.class, Color.class})))
 public class SelectedOutlinePatch {
 
-    // px, covers the vanilla 2 px border
-    private static final float THICKNESS = 3f;
     // the vanilla border cuts its corners by 3 px
     private static final float CUT = 3f;
-    // keeps the diagonal as thick as the sides
-    private static final float INNER_CUT = Math.max(0f, CUT - THICKNESS * (float) (Math.sqrt(2) - 1));
+    // each ring is 1 px; its corner cut shrinks so the diagonal stays as thick as the sides
+    private static final float CUT_STEP = (float) (Math.sqrt(2) - 1);
+    // below this the faction color has no real hue, so saturating it would turn it red
+    private static final float GRAY = 0.1f;
 
     // after the frame, icon and name, so the outline sits on top
     @After(target = @MethodMatch(methodName = "renderImpl", parameterCount = 1))
     public static void afterRender(AfterContext context) {
         ButtonAPI button = RenderPanels.submarketButton(context);
         if (button == null || !button.isHighlighted() || !(context.getSelf() instanceof UIComponentAPI panel)) return;
-        Color color = ((SubmarketAPI) button.getCustomData()).getFaction().getBrightUIColor();
-        draw(panel.getPosition(), color, (Float) context.getArg(0));
+        Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBrightUIColor());
+        draw(panel.getPosition(), new Color[]{Color.BLACK, color, Color.WHITE}, (Float) context.getArg(0));
     }
 
-    private static void draw(PositionAPI position, Color color, float alpha) {
+    public static Color saturated(Color color) {
+        float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+        return Color.getHSBColor(hsb[0], hsb[1] < GRAY ? hsb[1] : 1f, 1f);
+    }
+
+    // rings from the tile edge inwards
+    private static void draw(PositionAPI position, Color[] rings, float alpha) {
         float x0 = position.getX();
         float y0 = position.getY();
         float x1 = x0 + position.getWidth();
         float y1 = y0 + position.getHeight();
-        float[] outer = octagon(x0, y0, x1, y1, CUT);
-        float[] inner = octagon(x0 + THICKNESS, y0 + THICKNESS, x1 - THICKNESS, y1 - THICKNESS, INNER_CUT);
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
-                color.getAlpha() / 255f * alpha);
-        GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
-        for (int i = 0; i <= 8; i++) {
-            int k = (i % 8) * 2;
-            GL11.glVertex2f(outer[k], outer[k + 1]);
-            GL11.glVertex2f(inner[k], inner[k + 1]);
+        for (int ring = 0; ring < rings.length; ring++) {
+            float[] outer = octagon(x0 + ring, y0 + ring, x1 - ring, y1 - ring, Math.max(0f, CUT - ring * CUT_STEP));
+            float[] inner = octagon(x0 + ring + 1, y0 + ring + 1, x1 - ring - 1, y1 - ring - 1,
+                    Math.max(0f, CUT - (ring + 1) * CUT_STEP));
+            Color color = rings[ring];
+            GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, alpha);
+            GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+            for (int i = 0; i <= 8; i++) {
+                int k = (i % 8) * 2;
+                GL11.glVertex2f(outer[k], outer[k + 1]);
+                GL11.glVertex2f(inner[k], inner[k + 1]);
+            }
+            GL11.glEnd();
         }
-        GL11.glEnd();
         GL11.glPopAttrib();
     }
 
