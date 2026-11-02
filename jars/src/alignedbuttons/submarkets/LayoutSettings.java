@@ -11,9 +11,12 @@ public final class LayoutSettings {
     public static final float UNFOLD_TIME_DEFAULT = 0.1f;
     public static final float UNFOLD_TIME_MIN = 0f;
     public static final float UNFOLD_TIME_MAX = 1f;
-    public static final String OUTLINE_ANIMATION = "aligned_buttons_outline_animation";
+    public static final String SELECTED_HIGHLIGHT = "aligned_buttons_selected_highlight";
+    public static final String FIX_CORNERS = "aligned_buttons_fix_corners";
+    public static final boolean FIX_CORNERS_DEFAULT = true;
 
-    private static OutlineAnimation outlineAnimation = OutlineAnimation.DEFAULT;
+    private static SelectedHighlight selectedHighlight = SelectedHighlight.DEFAULT;
+    private static boolean fixCorners = FIX_CORNERS_DEFAULT;
 
     private LayoutSettings() {
     }
@@ -32,12 +35,21 @@ public final class LayoutSettings {
         return (float) Math.max(UNFOLD_TIME_MIN, Math.min(UNFOLD_TIME_MAX, seconds));
     }
 
-    // the outline renders every frame, so it reads this copy, refreshed when a strip is built
-    public static OutlineAnimation outlineAnimation() {
-        return outlineAnimation;
+    // the button render patches run every frame, so they read these copies, refreshed when a strip is built
+    public static void readRenderSettings() {
+        selectedHighlight = SelectedHighlight.byLabel(LunaSettings.getString(MOD_ID, SELECTED_HIGHLIGHT));
+        fixCorners = fixCorners(LunaSettings.getBoolean(MOD_ID, FIX_CORNERS));
     }
 
-    public static void readOutlineAnimation() {
-        outlineAnimation = OutlineAnimation.byLabel(LunaSettings.getString(MOD_ID, OUTLINE_ANIMATION));
+    public static SelectedHighlight selectedHighlight() {
+        return selectedHighlight;
+    }
+
+    public static boolean fixCorners() {
+        return fixCorners;
+    }
+
+    public static boolean fixCorners(Boolean value) {
+        return value != null ? value : FIX_CORNERS_DEFAULT;
     }
 }

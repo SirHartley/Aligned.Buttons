@@ -20,7 +20,7 @@ public final class UnfoldRows {
 
     public UnfoldRows(SubmarketGrid grid, float openWidth, float unfoldTime) {
         this.grid = grid;
-        this.foldedWidth = grid.fixedWidth;
+        this.foldedWidth = grid.foldedWidth;
         this.openWidth = Math.max(openWidth, foldedWidth);
         this.unfoldTime = Math.max(0f, unfoldTime);
         int[] order = new int[grid.count];

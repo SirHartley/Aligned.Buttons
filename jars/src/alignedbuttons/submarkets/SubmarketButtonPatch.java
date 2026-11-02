@@ -44,7 +44,7 @@ public class SubmarketButtonPatch {
         }
         if (buttons.isEmpty()) return;
         ButtonLayout layout = LayoutSettings.layout();
-        LayoutSettings.readOutlineAnimation();
+        LayoutSettings.readRenderSettings();
         PositionAPI first = buttons.get(0).getPosition();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));
@@ -62,11 +62,10 @@ public class SubmarketButtonPatch {
             int slot = grid.slot(i);
             button.getPosition().setSize(grid.buttonWidth(slot), grid.buttonHeight)
                     .inTL(grid.left(slot), grid.top(slot));
-            if (layout == ButtonLayout.STRETCHED) continue;
+            if (layout != ButtonLayout.FIVE_PER_ROW) continue;
             LabelAPI label = label(context, button, grid.buttonWidth(slot), grid.buttonHeight);
             if (label == null) continue;
-            label.setText(layout == ButtonLayout.ICONS ? ""
-                    : SubmarketGrid.fit(label.getText(), grid.labelWidth(slot), label::computeTextWidth));
+            label.setText(SubmarketGrid.fit(label.getText(), grid.labelWidth(slot), label::computeTextWidth));
         }
     }
 
