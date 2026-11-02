@@ -15,7 +15,7 @@ When the user asks for a plan, or to check something as a possible change, post 
 1. Read the current remote `CLAUDE.md` in full at the start of each new task. Within the same task, reuse the version already read unless the instructions change. Read new or changed instruction files before following them.
 2. Use the `starsector-knowledge` skill before answering or changing anything related to Starsector. It covers one exact game version. Do not rely on memory.
    - Load the `house-style` skill for every task. Its personal rules (answers, vocabulary, comments, commits, punctuation) take precedence over older wording in this repository.
-   - Load the `patchlib` skill before deciding on, planning, writing or reviewing a PatchLib patch, and before changing any patch class in `jars/src/alignedbuttons/submarkets` (`SubmarketButtonPatch`, `ButtonHighlightPatch`).
+   - Load the `patchlib` skill before deciding on, planning, writing or reviewing a PatchLib patch, and before changing any patch class (`*Patch.java`) in `jars/src/alignedbuttons/submarkets`.
 3. If the skill is incomplete, inspect the read-only jars under `lib/` (game API, PatchLib API, LunaLib, LazyLib). Extract them to a temporary directory, never into the repository. `lib/PatchLibAPI.jar` bundles the PatchLib API sources; when they differ from the `patchlib` skill's copy, the jar wins.
 4. Select the required guides using [Which guide to read](#which-guide-to-read). Apply every matching row, including for reviews and fixes to existing behavior.
 

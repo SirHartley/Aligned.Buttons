@@ -21,6 +21,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Layout setting has no effect | `data/config/LunaSettings.csv` `aligned_buttons_layout` -> `LayoutSettings.layout` -> `ButtonLayout.byLabel` |
 | Unfold time has no effect | `data/config/LunaSettings.csv` `aligned_buttons_unfold_time` -> `LayoutSettings.unfoldTime` -> `UnfoldRows.unfoldTime` -> `UnfoldRows.step` |
 | Cargo or fleet panel overlaps the strip | [strip height contract](#vanilla-strip) |
+| Selected button has no outline, or the wrong color | `SelectedOutlinePatch.afterRender -> RenderPanels.submarketButton -> ButtonAPI.isHighlighted -> SubmarketAPI.getFaction().getBrightUIColor()` |
 | Stray 1 px line right of an icon only button while it glows | `ButtonHighlightPatch.skipNegativeFill`; [highlight patch target](#patch-target) |
 
 ## Registration and lifecycle
@@ -28,7 +29,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Registry / hook | Owners |
 |---|---|
 | `mod_info.json` | No `modPlugin`; jar `jars/AlignedButtons.jar`; dependencies PatchLib, LunaLib; `utility` because nothing is saved |
-| PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch` when the button render panel class loads; nothing is registered by hand |
+| PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch` and `submarkets/SelectedOutlinePatch` when the button render panel class loads; nothing is registered by hand |
 | `data/config/LunaSettings.csv` | The layout and unfold time settings and their help text |
 | `data/config/version/version_files.csv` | Version Checker entry for `AlignedButtons.version` |
 
@@ -62,6 +63,8 @@ Use `rg --files jars/src/alignedbuttons` for the complete inventory.
 | `submarkets/LayoutSettings.java` | Setting ids, unfold time default and bounds, `layout()` and `unfoldTime()` from LunaLib |
 | `submarkets/UnfoldRows.java` | `UNFOLD` math, no game types: rows of tiles (storage last, pinned to the right edge), how far each tile is open (each row sums to 1), the target per row, `step` (the target opens fully over `unfoldTime` seconds, at once for 0, and takes width from the others in proportion to what they hold), positions, hit test and name opacity |
 | `submarkets/UnfoldStrip.java` | `UNFOLD` state on one strip: weak references to its buttons and name labels, the width each name needs, the cursor test against the strip and `apply`, which moves the buttons and sets label opacity |
+| `submarkets/SelectedOutlinePatch.java` | `@After` on the button render panel's `renderImpl`: draws a 3 px outline with cut corners, in the submarket faction's bright UI color, around the selected (highlighted) submarket button, on top of the frame, icon and name |
+| `submarkets/RenderPanels.java` | Reads the button off a render panel (`button` field) and returns it only when it carries a `SubmarketAPI` |
 | `submarkets/ButtonHighlightPatch.java` | Redirect in the button render panel's `renderImpl`: skips a rectangle fill with a negative width, which only the highlight strip of a 72 px icon tile has |
 
 ## Contracts
@@ -77,6 +80,7 @@ Evidence: decompiled `0.98a-RC8` from the `starsector-knowledge` skill. Obfuscat
 - Each button draws through a render panel whose position the button copies on every update, so a later `setSize` on the button reaches the drawn frame. The frame (background, border, highlight strip) uses the current width every frame; the icon and name sit at fixed offsets on the left.
 - The render panel draws the icon at `inTL(4, 4)`, `(height - 8) * 640 / 400` by `height - 8` (64 by 40 px), and the name 10 px right of it in `orbitron12condensed`. The icon does not move with the width, so `ICONS` keeps its tiles at exactly 72 px (icon 4 px from both edges) instead of stretching them. The highlight strip behind the name is drawn while the button glows with `O.Ó00000(x + 4 + iconWidth + 1, y + 4, width - 8 - iconWidth - 1, height - 8, color, alpha)` (`com.fs.starfarer.renderers.O` on `0.98a-RC8`), a GL quad with no width check, so at 72 px its width is -1 and it would still light the pixel column left of `x + 69`. `ButtonAPI.setText` does nothing for these buttons (it only handles a different renderer type).
 - The render panel builds its icon and name label once, on its first size change, which normally comes with the first frame. `relabel` sets the panel's size itself so the label exists inside the hook, then reaches it through the button's readable `getButtonPanel()` and the panel's only `LabelAPI` field. Vanilla names carry a line break (`Open\nMarket` in `data/campaign/submarkets.csv`), so `fit` cuts each line on its own.
+- The button render panel class is also used for the cargo screen's Colony Info button. Each button sets itself on its render panel (the readable `button` field the panel inherits) at the start of every render, so the panel's render hooks can read the button and its custom data; `RenderPanels` skips any button without a `SubmarketAPI`. The selected submarket is the one whose button `isHighlighted()`.
 - Resizing the strip does not rebuild it: neither the strip class nor its base panel overrides `sizeChanged`.
 - The strip declares `advanceImpl(float)`, called every frame with the frame time in seconds while the screen is open. The cargo screen selects a submarket inside the constructor, the fleet screen calls `selectFirst()` right after it, so `UnfoldStrip` reads the selected (highlighted) button on its first advance and opens it without animation.
 - `SettingsAPI.getMouseX/Y` and `PositionAPI.getX/Y` use the same virtual screen coordinates with y up from the bottom; the engine's own `containsMouse` compares them directly.
@@ -101,6 +105,12 @@ Evidence: decompiled `0.98a-RC8` from the `starsector-knowledge` skill. Obfuscat
 - The game classes are Java 17 class files, which PatchLib redirects need.
 - After a game update, check the constructor shape, `renderImpl`, and that the strip fill still uses that call shape. If the redirect stops installing, icon only buttons show a 1 px line in their right gap while they glow; nothing else breaks.
 - PatchLib logs `Installed a redirect patch site at com.fs.starfarer.campaign.ui.<class> on method renderImpl` the first time a submarket button draws. `TogglePatch alignedbuttons.submarkets.ButtonHighlightPatch` switches it off.
+
+`SelectedOutlinePatch`:
+
+- Same class match as `ButtonHighlightPatch`. `@After` on `renderImpl` (one parameter); the parameter is the render alpha, which the outline uses so it fades with the screen.
+- Draws with raw `GL11` (a triangle strip between two cut corner octagons) inside `glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT)` / `glPopAttrib`, so texture, blend and color state are restored for whatever renders next.
+- After a game update, check `renderImpl`, the `button` field on the render panel's base class, and that the selected button still reports `isHighlighted()`.
 
 ### Shared constraints
 
