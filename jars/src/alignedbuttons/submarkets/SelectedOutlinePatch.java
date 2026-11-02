@@ -25,9 +25,9 @@ public class SelectedOutlinePatch {
     public static final float GRAY = 0.03f;
     // the static inner ring is white shifted this far toward the faction color
     public static final float WHITE_TINT = 0.1f;
-    // rings from the tile edge inwards; the animated band is soft black with the highlights on its middle ring
+    // rings from the tile edge inwards, alpha 0 skips a ring; the animated band leaves the outer px to the vanilla frame
     private static final float[] STATIC_ALPHA = {1f, 1f, 1f};
-    public static final float[] ANIMATED_ALPHA = {0.5f, 1f, 0.5f};
+    public static final float[] ANIMATED_ALPHA = {0f, 1f, 0.5f};
     public static final int HIGHLIGHT_RING = 1;
     // like the vanilla selected weapon slot: four highlights a quarter lap apart, clockwise, one lap in 4.4 s
     public static final int HIGHLIGHTS = 4;
@@ -81,6 +81,7 @@ public class SelectedOutlinePatch {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glBegin(GL11.GL_QUADS);
         for (int ring = 0; ring < rings.length; ring++) {
+            if (ringAlpha[ring] <= 0f) continue;
             OutlineRing path = OutlineRing.of(x0, y0, x1, y1, ring);
             Color color = rings[ring];
             float a = alpha * ringAlpha[ring];
