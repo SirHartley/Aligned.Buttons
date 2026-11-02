@@ -23,8 +23,10 @@ public class SelectedOutlinePatch {
 
     // below this the faction color has no real hue to saturate; pale tints above it still have one
     public static final float GRAY = 0.03f;
-    // the animated inner ring is this far from the faction color to white, so white highlights show on it
-    private static final float TINT = 0.5f;
+    // rings from the tile edge inwards; the animated band is soft black with the highlights on its middle ring
+    private static final float[] STATIC_ALPHA = {1f, 1f, 1f};
+    public static final float[] ANIMATED_ALPHA = {0.5f, 1f, 0.5f};
+    public static final int HIGHLIGHT_RING = 1;
     // like the vanilla selected weapon slot: four highlights a quarter lap apart, clockwise, one lap in 4.4 s
     public static final int HIGHLIGHTS = 4;
     public static final float LAP_SECONDS = 4.4f;
@@ -38,9 +40,12 @@ public class SelectedOutlinePatch {
         if (button == null || !button.isHighlighted() || !(context.getSelf() instanceof UIComponentAPI panel)) return;
         // base, not bright: an unset bright color is the base tinted toward the ui cyan, which turns grays blue
         Color color = saturated(((SubmarketAPI) button.getCustomData()).getFaction().getBaseUIColor());
-        boolean animated = LayoutSettings.animatedOutline();
-        Color inside = animated ? mix(color, Color.WHITE, TINT) : Color.WHITE;
-        draw(panel.getPosition(), new Color[]{Color.BLACK, color, inside}, animated, (Float) context.getArg(0));
+        float alpha = (Float) context.getArg(0);
+        if (LayoutSettings.animatedOutline()) {
+            draw(panel.getPosition(), new Color[]{Color.BLACK, Color.BLACK, Color.BLACK}, ANIMATED_ALPHA, color, alpha);
+        } else {
+            draw(panel.getPosition(), new Color[]{Color.BLACK, color, Color.WHITE}, STATIC_ALPHA, null, alpha);
+        }
     }
 
     // a gray keeps its own brightness, at full brightness it would be white and merge with the inner ring
@@ -49,20 +54,14 @@ public class SelectedOutlinePatch {
         return hsb[1] < GRAY ? new Color(color.getRed(), color.getGreen(), color.getBlue()) : Color.getHSBColor(hsb[0], 1f, 1f);
     }
 
-    public static Color mix(Color from, Color to, float amount) {
-        return new Color(Math.round(from.getRed() + (to.getRed() - from.getRed()) * amount),
-                Math.round(from.getGreen() + (to.getGreen() - from.getGreen()) * amount),
-                Math.round(from.getBlue() + (to.getBlue() - from.getBlue()) * amount));
-    }
-
     // head of highlight 0 as a fraction of the lap; rings run counterclockwise, so clockwise counts down
     public static float lapPosition(double seconds) {
         double lap = seconds / LAP_SECONDS;
         return (float) (1.0 - (lap - Math.floor(lap)));
     }
 
-    // rings from the tile edge inwards, the highlights run on the innermost one
-    private static void draw(PositionAPI position, Color[] rings, boolean animated, float alpha) {
+    // highlight null draws the static outline
+    private static void draw(PositionAPI position, Color[] rings, float[] ringAlpha, Color highlight, float alpha) {
         float x0 = position.getX();
         float y0 = position.getY();
         float x1 = x0 + position.getWidth();
@@ -72,21 +71,21 @@ public class SelectedOutlinePatch {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glBegin(GL11.GL_QUADS);
-        OutlineRing innermost = null;
         for (int ring = 0; ring < rings.length; ring++) {
             OutlineRing path = OutlineRing.of(x0, y0, x1, y1, ring);
             Color color = rings[ring];
+            float a = alpha * ringAlpha[ring];
             path.pieces(0f, 1f, (ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1, at0, at1) ->
-                    quad(color, alpha, alpha, ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1));
-            innermost = path;
+                    quad(color, a, a, ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1));
         }
-        if (animated && innermost != null) {
+        if (highlight != null) {
+            OutlineRing path = OutlineRing.of(x0, y0, x1, y1, HIGHLIGHT_RING);
             float head = lapPosition(System.nanoTime() / 1e9);
             for (int i = 0; i < HIGHLIGHTS; i++) {
                 float from = head + (float) i / HIGHLIGHTS;
                 // the tail trails behind the clockwise head, fading out
-                innermost.pieces(from, from + HIGHLIGHT_LENGTH, (ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1, at0, at1) ->
-                        quad(Color.WHITE, alpha * (1f - at0), alpha * (1f - at1), ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1));
+                path.pieces(from, from + HIGHLIGHT_LENGTH, (ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1, at0, at1) ->
+                        quad(highlight, alpha * (1f - at0), alpha * (1f - at1), ox0, oy0, ix0, iy0, ox1, oy1, ix1, iy1));
             }
         }
         GL11.glEnd();
