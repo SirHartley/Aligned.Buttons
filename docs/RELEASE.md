@@ -11,7 +11,7 @@ How Aligned.Buttons is built, packaged and published. Nothing here runs unless a
 | Version file | `AlignedButtons.version` | Online Version Checker file on `master`, registered in `data/config/version/version_files.csv`; stamped at packaging, committed back after a release |
 | Release builder | `jars/src/alignedbuttons/tools/ReleaseBuild.java` | `build` and `package`, run with `java <file>` |
 | Builder checks | `jars/src/alignedbuttons/tools/ReleaseBuildChecks.java` | Headless checks of changelog parsing, stamping and file filtering |
-| Build libraries | `lib/` | Game API and library jars from `0.98a-RC8`, plus `PatchLibAPI.jar` from PatchLib `1.0.3` |
+| Build libraries | `lib/` | Game API and library jars from `0.98a-RC8`, `PatchLibAPI.jar` from PatchLib `1.0.3`, and `LunaLib.jar`, `LazyLib.jar` and `Kotlin-Runtime.jar` copied from Illustrated.Entities' `lib/` |
 | Release jar | `jars/release/AlignedButtons.jar` | Built by `build`, gitignored, runtime classes only; shipped as `jars/AlignedButtons.jar` |
 | Release workflow | `.github/workflows/release.yml` | Manual only: preview without a version, publish with one |
 
@@ -31,10 +31,10 @@ From the repository root, with JDK 17:
 java jars/src/alignedbuttons/tools/ReleaseBuild.java build
 ```
 
-- Compiles against the jars in `lib/`: `starfarer.api.jar`, `lwjgl.jar`, `lwjgl_util.jar`, `json.jar`, `log4j-1.2.9.jar` and `PatchLibAPI.jar`. No game install is needed. `starfarer_obf.jar` is not needed: the code uses only API types.
+- Compiles against the jars in `lib/`: `starfarer.api.jar`, `lwjgl.jar`, `lwjgl_util.jar`, `json.jar`, `log4j-1.2.9.jar`, `PatchLibAPI.jar`, `LazyLib.jar`, `LunaLib.jar` and `Kotlin-Runtime.jar`. No game install is needed. `starfarer_obf.jar` is not needed: the code uses only API types.
 - `PatchLibAPI.jar` registers PatchLib's annotation processor, so `build` also checks handler shapes (static, one parameter of the exact context type).
 - Builds into a fresh `out/release-build-*`, keeps only runtime classes (the `tools` package never ships), and replaces the release jar only after a clean compile. The jar must contain `alignedbuttons/submarkets/SubmarketButtonPatch.class`; the mod has no mod plugin.
-- After a game update, copy the new game jars into `lib/`. After a PatchLib update, copy `PatchLibAPI.jar` from the PatchLib mod's `jars/` folder (never `PatchLib.jar` or `PatchLibAgent.jar`) and update the version in the table above.
+- After a game or LunaLib update, copy the new jars into `lib/`. After a PatchLib update, copy `PatchLibAPI.jar` from the PatchLib mod's `jars/` folder (never `PatchLib.jar` or `PatchLibAgent.jar`) and update the version in the table above.
 
 ## Package
 

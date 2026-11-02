@@ -12,5 +12,9 @@
             "id": "patchlib",
             "name": "! PatchLib !",
         },
+        {
+            "id": "lunalib",
+            "name": "LunaLib",
+        },
     ]
 }

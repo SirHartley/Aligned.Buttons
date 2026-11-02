@@ -50,11 +50,13 @@ public final class ReleaseBuild {
 
     static final String LIBS = "lib";
     static final List<String> LIB_JARS = List.of("starfarer.api.jar",
-            "lwjgl.jar", "lwjgl_util.jar", "json.jar", "log4j-1.2.9.jar", "PatchLibAPI.jar");
+            "lwjgl.jar", "lwjgl_util.jar", "json.jar", "log4j-1.2.9.jar", "PatchLibAPI.jar",
+            "LazyLib.jar", "LunaLib.jar", "Kotlin-Runtime.jar");
 
     static final Set<String> ROOT_FILES = Set.of("mod_info.json", VERSION_FILE, "Changelog",
             "LICENSE", "LICENSE.txt", "LICENSE.md", "NOTICE", "CREDITS", "CREDITS.txt", "CREDITS.md");
-    static final List<String> REQUIRED = List.of("Changelog", "mod_info.json", VERSION_FILE);
+    static final List<String> REQUIRED = List.of("Changelog", "mod_info.json", VERSION_FILE,
+            "data/config/LunaSettings.csv");
     static final Set<String> NOTICES = Set.of();
     static final Map<String, Set<String>> ASSETS = Map.of(
             "data", Set.of("csv", "json", "shader", "ship", "wpn", "proj", "system", "variant", "skin"),

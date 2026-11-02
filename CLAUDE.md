@@ -16,7 +16,7 @@ When the user asks for a plan, or to check something as a possible change, post 
 2. Use the `starsector-knowledge` skill before answering or changing anything related to Starsector. It covers one exact game version. Do not rely on memory.
    - Load the `house-style` skill for every task. Its personal rules (answers, vocabulary, comments, commits, punctuation) take precedence over older wording in this repository.
    - Load the `patchlib` skill before deciding on, planning, writing or reviewing a PatchLib patch, and before changing anything in `jars/src/alignedbuttons/submarkets/SubmarketButtonPatch.java`.
-3. If the skill is incomplete, inspect the read-only jars under `lib/` (game API, PatchLib API). Extract them to a temporary directory, never into the repository. `lib/PatchLibAPI.jar` bundles the PatchLib API sources; when they differ from the `patchlib` skill's copy, the jar wins.
+3. If the skill is incomplete, inspect the read-only jars under `lib/` (game API, PatchLib API, LunaLib, LazyLib). Extract them to a temporary directory, never into the repository. `lib/PatchLibAPI.jar` bundles the PatchLib API sources; when they differ from the `patchlib` skill's copy, the jar wins.
 4. Select the required guides using [Which guide to read](#which-guide-to-read). Apply every matching row, including for reviews and fixes to existing behavior.
 
 ### Which guide to read
@@ -27,7 +27,8 @@ After reading this file, use the task to choose the next document. Read the rele
 |---|---|
 | Locate code, trace a feature, change an owner or lifecycle | [ARCHITECTURE.md](docs/ARCHITECTURE.md) before tracing code; follow its owner links. |
 | Change the patch, the button grid or how buttons are found | [ARCHITECTURE.md](docs/ARCHITECTURE.md#contracts), then the `patchlib` skill and the vanilla strip class it names. |
-| Write or revise player-facing text (README, changelog, mod description) | [CHANGELOG.md](docs/CHANGELOG.md#wording) for wording. |
+| Write or revise player-facing text (settings help, README, changelog, mod description) | [CHANGELOG.md](docs/CHANGELOG.md#wording) for wording; settings help text lives in `data/config/LunaSettings.csv`. |
+| Add or change a setting | [ARCHITECTURE.md](docs/ARCHITECTURE.md#settings) |
 | Edit a guide or add documentation | [Documentation upkeep](#documentation-upkeep), the owning guide and its inbound links. |
 | Change the build, rebuild the release jar, or prepare a release | [RELEASE.md](docs/RELEASE.md) |
 | Any implementation task | [CHANGELOG.md](docs/CHANGELOG.md): add or amend the task's entries in the current unreleased section before merge. |
@@ -56,7 +57,7 @@ After reading this file, use the task to choose the next document. Read the rele
 - Every runtime-affecting final branch must pass the clean build described in [Building](#building).
 - Build the exact final remote task-branch revision. Earlier builds, partial builds, IDE analysis and static checks do not satisfy the gate.
 - Missing compilers or required dependencies are merge blockers. Documentation-only changes do not require a build.
-- A change to anything under `jars/src/alignedbuttons/submarkets` must pass `tools/LayoutChecks`. The command is in [ARCHITECTURE.md](docs/ARCHITECTURE.md#build-and-checks).
+- A change to anything under `jars/src/alignedbuttons/submarkets` or to `data/config/LunaSettings.csv` must pass `tools/LayoutChecks`. The command is in [ARCHITECTURE.md](docs/ARCHITECTURE.md#build-and-checks).
 - No CI runs on pushes or pull requests. The release workflow runs only when started by hand on request; do not add triggers or check workflows.
 - Open a pull request and merge it when the work is complete. Do not leave finished work on an unmerged branch.
 - Use the connected GitHub app to create, inspect, and merge pull requests.
@@ -74,12 +75,12 @@ Update documents automatically as part of each relevant change. Before committin
 
 | Document | Owns | Update when / how |
 |---|---|---|
-| `README.md` | What the mod is, requirements, install, compatibility | Update when a dependency, install step or player-visible behavior changes. Link to the guides for build and release detail instead of copying it. |
+| `README.md` | What the mod is, requirements, install, settings overview, compatibility | Update when a setting, dependency, install step or player-visible behavior changes. Link to the guides for build and release detail instead of copying it. |
 | `AGENTS.md` | Discovery for other agents | Keep it a short pointer to this file. Do not copy workflow policy into it. |
 | `CLAUDE.md` | Task scope, workflow, commits, PRs, build gate, comments, document maintenance | Replace changed policies here and update links. Keep provider-specific instructions explicitly scoped. |
 | `docs/ARCHITECTURE.md` | Technical routing: owners, registrations, patch targets, engine contracts and cross-file constraints | Update the affected route or contract; remove obsolete owners. Use exact paths and symbols. No release history or duplicate policy. |
 | `docs/RELEASE.md` | Version numbers, release builder, package contents and publishing | Keep the workflow and builder aligned. |
-| `lib/` | Read-only compile jars (game API and its libraries, PatchLib API) | Replace only for a game or library update, as described in `docs/RELEASE.md`. |
+| `lib/` | Read-only compile jars (game API and its libraries, PatchLib API, LunaLib, LazyLib, Kotlin runtime) | Replace only for a game or library update, as described in `docs/RELEASE.md`. |
 | `Changelog` and `docs/CHANGELOG.md` | Shipped change notes and how agents write them | Add or amend unreleased entries with each implementation task; preserve published entries. |
 
 Give each fact one home. Move useful detail to its proper owner and link to it. After moving a section, repair inbound links and check that no requirement or technical constraint was lost.

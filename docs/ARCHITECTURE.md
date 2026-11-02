@@ -5,7 +5,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Reference | Scope |
 |---|---|
 | [CLAUDE.md](../CLAUDE.md) | Workflow, build gate and document upkeep |
-| [README.md](../README.md) | Player overview, requirements, install, compatibility |
+| [README.md](../README.md) | Player overview, requirements, install, settings, compatibility |
 | [RELEASE.md](RELEASE.md) | Version numbers, release builder, package contents and publishing |
 | [CHANGELOG.md](CHANGELOG.md) | Change-note format and upkeep for every implementation task |
 
@@ -14,19 +14,26 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | Change / symptom | Route |
 |---|---|
 | Buttons not moved at all | PatchLib log lines for `SubmarketButtonPatch` (below) -> [patch target](#patch-target) after a game update |
-| Wrong column count, widths, gaps or strip height | `SubmarketButtonPatch.afterConstructor -> SubmarketGrid.of -> slot / left / top / buttonWidth / height` |
+| Wrong column count, widths, gaps or strip height | `SubmarketButtonPatch.afterConstructor -> ButtonLayout.current -> SubmarketGrid.of -> slot / left / top / buttonWidth / height` |
 | Storage button in the wrong place | `SubmarketButtonPatch.storageIndex -> SubmarketGrid.slot` |
+| Names still shown with Icons only, or not cut short with Five per row | `SubmarketButtonPatch.relabel -> SubmarketGrid.labelWidth / fit`; [render panel contract](#vanilla-strip) |
+| Layout setting has no effect | `data/config/LunaSettings.csv` `aligned_buttons_layout` -> `ButtonLayout.current` -> `ButtonLayout.byLabel` |
 | Cargo or fleet panel overlaps the strip | [strip height contract](#vanilla-strip) |
 
 ## Registration and lifecycle
 
 | Registry / hook | Owners |
 |---|---|
-| `mod_info.json` | No `modPlugin`; jar `jars/AlignedButtons.jar`; dependency PatchLib; `utility` because nothing is saved |
+| `mod_info.json` | No `modPlugin`; jar `jars/AlignedButtons.jar`; dependencies PatchLib, LunaLib; `utility` because nothing is saved |
 | PatchLib discovery | PatchLib scans `jars/AlignedButtons.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads; nothing is registered by hand |
+| `data/config/LunaSettings.csv` | The layout setting and its help text |
 | `data/config/version/version_files.csv` | Version Checker entry for `AlignedButtons.version` |
 
 There is no load order: the patch runs each time the game builds a submarket strip, which happens when the cargo or fleet screen opens at a market.
+
+### Settings
+
+`submarkets/ButtonLayout` owns the mod id, the setting id `aligned_buttons_layout` and one constant per radio option; each constant's `label` is the option text in `data/config/LunaSettings.csv` and the value LunaLib saves. `data/config/LunaSettings.csv` owns the help text; its default and option order mirror `ButtonLayout`. `ButtonLayout.current` reads LunaLib once per strip build, which only happens when a screen opens, so there is no listener or cache; a missing or unknown value falls back to `STRETCHED`. A changed setting applies the next time a screen opens.
 
 ### Build and checks
 
@@ -36,7 +43,7 @@ There is no load order: the patch runs each time the game builds a submarket str
 java -cp "out/release-build-<n>/classes:lib/*" alignedbuttons.tools.LayoutChecks
 ```
 
-It checks `SubmarketGrid` for strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, columns are 5 px apart and differ by at most 1 px in width, the last column ends on the strip edge, storage sits in the last column of the last row, the column and row counts match the vanilla wrap rule, and no button is narrower than vanilla.
+It checks `SubmarketGrid` for every `ButtonLayout`, strip widths from 450 to 1900 px and 1 to 12 buttons, with and without storage: every button gets its own slot inside the strip, columns are 5 px apart and differ by at most 1 px in width, the last column ends on the strip edge, and storage sits in the last column of the last row. Per layout: `STRETCHED` matches the vanilla column and row counts and is never narrower than vanilla, `ICONS` fits as many 73 px buttons as the row allows, `FIVE_PER_ROW` always has five columns. It also checks `SubmarketGrid.fit` with a fixed width per character, and that `LunaSettings.csv` and `ButtonLayout` agree (header, nine columns, `Radio` type, default, option order, help text, fallback).
 
 ## Source owners
 
@@ -46,8 +53,9 @@ Use `rg --files jars/src/alignedbuttons` for the complete inventory.
 
 | File | Owner / connection |
 |---|---|
-| `submarkets/SubmarketButtonPatch.java` | The only PatchLib patch. `@After` on the strip constructor: collects the buttons, finds storage, places every button through `SubmarketGrid` and sets the strip height |
-| `submarkets/SubmarketGrid.java` | All layout math: column count, slot per button (storage last column of the last row), rounded column edges, row tops and strip height. No game types, so `LayoutChecks` can run it |
+| `submarkets/SubmarketButtonPatch.java` | The only PatchLib patch. `@After` on the strip constructor: collects the buttons, finds storage, places every button through `SubmarketGrid`, sets the strip height, and for `ICONS` and `FIVE_PER_ROW` rewrites each name label |
+| `submarkets/SubmarketGrid.java` | All layout math: column count per `ButtonLayout`, slot per button (storage last column of the last row), rounded column edges, row tops, strip height, the room left for a name and `fit`, which cuts each name line to that room with `...`. No game types, so `LayoutChecks` can run it |
+| `submarkets/ButtonLayout.java` | The layout setting: ids, option labels, `current()` from LunaLib |
 
 ## Contracts
 
@@ -60,14 +68,16 @@ Evidence: decompiled `0.98a-RC8` from the `starsector-knowledge` skill. Obfuscat
 - Vanilla buttons are `(int)(height * 640 / 400) - 2 + 120` = 194 px wide with a 5 px gap; rows are `height + 2` apart. A row wraps once `x + width + gap` passes the strip width, so a row holds `floor(width / (194 + 5))` buttons. Storage is moved to the end of the list and placed with `inBR(0, 0)`, so it hugs the strip's right edge instead of the grid.
 - The strip keeps its buttons in display order in its only `List` field. Each button implements `ButtonAPI` and carries its `Submarket` (a `SubmarketAPI`) as custom data.
 - Each button draws through a render panel whose position the button copies on every update, so a later `setSize` on the button reaches the drawn frame. The frame (background, border, highlight strip) uses the current width every frame; the icon and name sit at fixed offsets on the left.
+- The render panel draws the icon at `inTL(4, 4)`, `(height - 8) * 640 / 400` by `height - 8` (64 by 40 px), and the name 10 px right of it in `orbitron12condensed`. The highlight strip behind the name is `width - 8 - iconWidth - 1` wide, so an icon only button needs 73 px. `ButtonAPI.setText` does nothing for these buttons (it only handles a different renderer type).
+- The render panel builds its icon and name label once, on its first size change, which normally comes with the first frame. `relabel` sets the panel's size itself so the label exists inside the hook, then reaches it through the button's readable `getButtonPanel()` and the panel's only `LabelAPI` field. Vanilla names carry a line break (`Open\nMarket` in `data/campaign/submarkets.csv`), so `fit` cuts each line on its own.
 - Resizing the strip does not rebuild it: neither the strip class nor its base panel overrides `sizeChanged`.
 
 ### Patch target
 
 - Class: `@ClassMatch(subtype = UIPanelAPI.class, packageName = "com.fs.starfarer.campaign.ui", methodMatches = @MethodMatch(methodName = "showSubmarketTextDialog"))`. `UIPanelAPI` and the package are stable or near stable; `showSubmarketTextDialog` is an inferred readable name. No obfuscated name appears in the code.
-- Method: `@After` on the constructor (`methodType = CONSTRUCTOR`, `parameterCount = 6`). Additive: vanilla's layout runs first, the hook then moves buttons. Nothing is skipped or replaced.
-- Buttons are read with `context.getField(FieldQuery.create().subtype(List.class).build())`, which finds the strip's own list before any superclass field.
-- After a game update, check in order: the package, the `showSubmarketTextDialog` name, the constructor arity, that the button list is still the strip's only `List` field, and the 5 px gap and 2 px row gap in `SubmarketGrid`.
+- Method: `@After` on the constructor (`methodType = CONSTRUCTOR`, `parameterCount = 6`). Vanilla's layout runs first; the hook then overwrites button positions, the strip height and, for `ICONS` and `FIVE_PER_ROW`, the name text. No vanilla code is skipped.
+- Buttons are read with `context.getField(FieldQuery.create().subtype(List.class).build())`, which finds the strip's own list before any superclass field. The name label is read with `getMethod` for `getButtonPanel` (no parameters) on the button and `getField` for the `LabelAPI` field on the panel, both behind `hasMethod` / `hasField`, so a missing member leaves the name as vanilla shows it.
+- After a game update, check in order: the package, the `showSubmarketTextDialog` name, the constructor arity, that the button list is still the strip's only `List` field, `getButtonPanel`, the render panel's single `LabelAPI` field and when it creates it, and the gap, border, icon and label constants in `SubmarketGrid`.
 - PatchLib logs `Discovered patch ... SubmarketButtonPatch` at startup and `Installed a hook patch site at com.fs.starfarer.campaign.ui.<class> on method <init>` the first time a strip is built. `TogglePatch alignedbuttons.submarkets.SubmarketButtonPatch` (Console Commands) switches it off for comparison.
 
 ### Shared constraints
