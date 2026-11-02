@@ -81,18 +81,14 @@ public class SubmarketButtonPatch {
         for (int i = 0; i < buttons.size(); i++) {
             if (buttons.get(i).isHighlighted()) rows.openNow(i);
         }
-        LabelAPI[] labels = new LabelAPI[buttons.size()];
-        float[] needed = new float[buttons.size()];
         float height = rows.grid.buttonHeight;
         for (int i = 0; i < buttons.size(); i++) {
             LabelAPI label = label(context, buttons.get(i), rows.width(i), height);
             if (label == null) continue;
             label.setText(SubmarketGrid.fit(label.getText(),
                     rows.openWidth - SubmarketGrid.labelInset(height), label::computeTextWidth));
-            labels[i] = label;
-            needed[i] = SubmarketGrid.labelInset(height) + SubmarketGrid.widest(label.getText(), label::computeTextWidth);
         }
-        UnfoldStrip strip = new UnfoldStrip(rows, buttons, labels, needed);
+        UnfoldStrip strip = new UnfoldStrip(rows, buttons);
         strip.apply();
         context.getData().put(UnfoldStrip.KEY, strip);
     }

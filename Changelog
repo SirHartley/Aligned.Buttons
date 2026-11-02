@@ -11,4 +11,5 @@ None
 
 1.0.a - UNRELEASED
 Added - Submarket buttons on the cargo and fleet screens fill each row exactly, five to a row by default, and the storage button sits in the last column instead of past the end of the row
-Added - Submarket button layout setting (LunaLib): Five per row (default, names too long for the button are cut short), Stretched (the vanilla number of buttons per row, widened to fill it), Icons only (as many icon sized buttons per row as fit, spaced evenly across the row, names in the tooltip) or Unfold on hover (icon buttons where the one under the cursor opens to show its name while the open one folds, over an Unfold time setting of 0 to 1 seconds, default 0.1)
+Added - The selected submarket's button gets a thick outline in its faction's color
+Added - Submarket button layout setting (LunaLib): Five per row (default, names too long for the button are cut short), Stretched (the vanilla number of buttons per row, widened to fill it), Icons only (as many icon sized buttons per row as fit, spaced evenly across the row, names in the tooltip) or Unfold on hover (icon buttons where the one under the cursor opens to show its name while the open one folds and the last hovered one stays open, over an Unfold time setting of 0 to 1 seconds, default 0.1)
