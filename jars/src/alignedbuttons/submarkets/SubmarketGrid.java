@@ -18,23 +18,29 @@ public final class SubmarketGrid {
     public final int columns;
     public final int count;
     public final int storage;
+    // 0 stretches the buttons to fill the row, otherwise the spare room goes into the gaps
+    public final float fixedWidth;
 
-    private SubmarketGrid(float width, float buttonHeight, int columns, int count, int storage) {
+    private SubmarketGrid(float width, float buttonHeight, int columns, int count, int storage, float fixedWidth) {
         this.width = width;
         this.buttonHeight = buttonHeight;
         this.columns = Math.max(1, columns);
         this.count = count;
         this.storage = storage;
+        this.fixedWidth = fixedWidth;
     }
 
     public static SubmarketGrid of(ButtonLayout layout, float width, float buttonHeight, float vanillaWidth,
                                    int count, int storage) {
-        int columns = switch (layout) {
-            case STRETCHED -> vanillaColumns(width, vanillaWidth);
-            case ICONS -> (int) ((width + GAP) / (iconOnlyWidth(buttonHeight) + GAP));
-            case FIVE_PER_ROW -> FIVE;
+        return switch (layout) {
+            case STRETCHED -> new SubmarketGrid(width, buttonHeight, vanillaColumns(width, vanillaWidth),
+                    count, storage, 0f);
+            // the render panel pins the icon to the left, a wider tile leaves it off center
+            case ICONS -> new SubmarketGrid(width, buttonHeight,
+                    (int) ((width + GAP) / (iconOnlyWidth(buttonHeight) + GAP)), count, storage,
+                    iconOnlyWidth(buttonHeight));
+            case FIVE_PER_ROW -> new SubmarketGrid(width, buttonHeight, FIVE, count, storage, 0f);
         };
-        return new SubmarketGrid(width, buttonHeight, columns, count, storage);
     }
 
     // vanilla wraps once x + width + gap passes the strip width
@@ -65,7 +71,9 @@ public final class SubmarketGrid {
     }
 
     public float left(int slot) {
-        return edge(slot % columns);
+        int column = slot % columns;
+        if (fixedWidth <= 0f) return edge(column);
+        return columns == 1 ? 0f : Math.round(column * (width - fixedWidth) / (columns - 1));
     }
 
     public float top(int slot) {
@@ -73,6 +81,7 @@ public final class SubmarketGrid {
     }
 
     public float buttonWidth(int slot) {
+        if (fixedWidth > 0f) return fixedWidth;
         int column = slot % columns;
         return edge(column + 1) - GAP - edge(column);
     }

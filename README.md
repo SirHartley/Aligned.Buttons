@@ -23,7 +23,7 @@ One LunaLib setting, **Submarket button layout**:
 | Option | Buttons |
 |---|---|
 | Stretched (default) | The vanilla number of buttons per row, widened to fill the row |
-| Icons only | Icon and border only, as many per row as fit; the name still shows in the tooltip |
+| Icons only | Icon and border only, as many per row as fit, spaced evenly across the row; the name still shows in the tooltip |
 | Five per row | Five buttons with names in each row; names too long for the button are cut short with `...` |
 
 The storage button always sits in the last column. A change applies the next time the screen opens.
