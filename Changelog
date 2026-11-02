@@ -1,0 +1,14 @@
+
+--------------------------- Known issues -----------------------------
+
+None
+
+--------------------------- Notes -----------------------------
+
+None
+
+--------------------------- Changelog -----------------------------
+
+1.0.a - UNRELEASED
+Added - Submarket buttons on the cargo and fleet screens are stretched to fill each row exactly, and the storage button sits in the last column instead of past the end of the row
+Added - Submarket button layout setting (LunaLib): Stretched (default), Icons only (as many icon buttons per row as fit, names in the tooltip) or Five per row (names too long for the button are cut short)
