@@ -44,31 +44,25 @@ final class UnfoldStrip {
         // the fleet screen selects its submarket after building the strip, so snap to it once
         if (!settled) {
             settled = true;
-            aimAtSelected(true);
+            openSelected();
             apply();
             return;
         }
+        // the last hovered tile stays open after the cursor leaves
         PositionAPI position = strip.getPosition();
         float x = Global.getSettings().getMouseX() - position.getX();
         float y = position.getY() + position.getHeight() - Global.getSettings().getMouseY();
         if (x >= 0f && x < position.getWidth() && y >= 0f && y < position.getHeight()) {
             int hovered = rows.at(x, y);
             if (hovered >= 0) rows.aim(hovered);
-        } else {
-            aimAtSelected(false);
         }
         if (rows.step(amount)) apply();
     }
 
-    private void aimAtSelected(boolean now) {
+    private void openSelected() {
         for (int i = 0; i < buttons.size(); i++) {
             ButtonAPI button = buttons.get(i).get();
-            if (button == null || !button.isHighlighted()) continue;
-            if (now) {
-                rows.openNow(i);
-            } else {
-                rows.aim(i);
-            }
+            if (button != null && button.isHighlighted()) rows.openNow(i);
         }
     }
 }

@@ -25,7 +25,7 @@ In vanilla the buttons have a fixed width, so a row ends short of the panel edge
 | Stretched | The vanilla number of buttons per row, widened to fill the row |
 | Icons only | Icon and border only, as many per row as fit, spaced evenly across the row; the name still shows in the tooltip |
 | Five per row (default) | Five buttons with names in each row; names too long for the button are cut short with `...` |
-| Unfold on hover | Icon buttons with one opened to show its name. The button under the cursor opens over the **Unfold time** while the open one folds, so the row keeps its width; sweeping the cursor across makes several buttons open part way and fold back. When the cursor leaves, the selected submarket opens again |
+| Unfold on hover | Icon buttons with one opened to show its name. The button under the cursor opens over the **Unfold time** while the open one folds, so the row keeps its width; sweeping the cursor across makes several buttons open part way and fold back. The last hovered button stays open after the cursor leaves; the selected submarket is the open one when the screen opens |
 
 The storage button always sits at the right end of the last row.
 
