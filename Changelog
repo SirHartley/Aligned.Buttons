@@ -1,0 +1,13 @@
+
+--------------------------- Known issues -----------------------------
+
+None
+
+--------------------------- Notes -----------------------------
+
+None
+
+--------------------------- Changelog -----------------------------
+
+1.0.a - UNRELEASED
+Added - Submarket buttons on the cargo and fleet screens are stretched to fill each row exactly, and the storage button sits in the last column instead of past the end of the row
