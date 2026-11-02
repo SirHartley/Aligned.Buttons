@@ -49,10 +49,12 @@ public final class LayoutChecks {
             }
         }
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
-        require(grid(ButtonLayout.ICONS, 903f).columns == 11, "eleven icon columns at 903 px");
         require(grid(ButtonLayout.UNFOLD, 903f).columns == 10, "ten unfold columns at 903 px");
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
-        require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px icon buttons");
+        require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px folded tiles");
+        // vanilla draws the icon at x = BORDER, so the folded tile's right inset must match it exactly
+        require(SubmarketGrid.iconOnlyWidth(HEIGHT) - SubmarketGrid.BORDER - SubmarketGrid.iconWidth(HEIGHT)
+                == SubmarketGrid.BORDER, "icon centered in a folded tile");
         checkFit();
         checkOutlineColor();
         checkOutlineRing();
@@ -69,17 +71,6 @@ public final class LayoutChecks {
         switch (layout) {
             case STRETCHED -> require(grid.buttonWidth(0) >= VANILLA_WIDTH || grid.columns == 1,
                     "never narrower than vanilla: " + name);
-            case ICONS -> {
-                for (int column = 0; column < grid.columns; column++) {
-                    require(grid.buttonWidth(column) == SubmarketGrid.iconOnlyWidth(HEIGHT),
-                            "icon sized tiles: " + name);
-                }
-                // vanilla draws the icon at x = BORDER, so the right inset must match it exactly
-                float right = grid.buttonWidth(0) - SubmarketGrid.BORDER - SubmarketGrid.iconWidth(HEIGHT);
-                require(right == SubmarketGrid.BORDER, "icon centered in its tile: " + name);
-                require((grid.columns + 1) * (SubmarketGrid.iconOnlyWidth(HEIGHT) + SubmarketGrid.GAP)
-                        > grid.width + SubmarketGrid.GAP, "as many icons as fit: " + name);
-            }
             case FIVE_PER_ROW -> require(grid.columns == SubmarketGrid.FIVE, "five columns: " + name);
         }
         boolean[] used = new boolean[grid.rows() * grid.columns];
@@ -97,15 +88,10 @@ public final class LayoutChecks {
         }
         int last = grid.columns - 1;
         require(grid.left(last) + grid.buttonWidth(last) == grid.width, "row ends on the strip edge: " + name);
-        float firstGap = grid.columns > 1 ? grid.left(1) - grid.buttonWidth(0) : SubmarketGrid.GAP;
         for (int column = 1; column < grid.columns; column++) {
             float gap = grid.left(column) - grid.left(column - 1) - grid.buttonWidth(column - 1);
-            if (grid.fixedWidth > 0f) {
-                require(gap >= SubmarketGrid.GAP && Math.abs(gap - firstGap) <= 1f, "even gaps: " + name);
-            } else {
-                require(gap == SubmarketGrid.GAP, "gap between columns: " + name);
-                require(Math.abs(grid.buttonWidth(column) - grid.buttonWidth(0)) <= 1f, "even widths: " + name);
-            }
+            require(gap == SubmarketGrid.GAP, "gap between columns: " + name);
+            require(Math.abs(grid.buttonWidth(column) - grid.buttonWidth(0)) <= 1f, "even widths: " + name);
         }
     }
 

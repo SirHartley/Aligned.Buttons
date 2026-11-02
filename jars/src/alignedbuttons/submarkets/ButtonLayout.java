@@ -3,7 +3,6 @@ package alignedbuttons.submarkets;
 public enum ButtonLayout {
 
     STRETCHED("Stretched"),
-    ICONS("Icons only"),
     FIVE_PER_ROW("Five per row"),
     UNFOLD("Unfold on hover");
 

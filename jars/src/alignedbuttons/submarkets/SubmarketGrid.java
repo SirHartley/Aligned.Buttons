@@ -18,16 +18,16 @@ public final class SubmarketGrid {
     public final int columns;
     public final int count;
     public final int storage;
-    // 0 stretches the buttons to fill the row, otherwise the spare room goes into the gaps
-    public final float fixedWidth;
+    // unfold only: a folded tile's width, positions then come from UnfoldRows
+    public final float foldedWidth;
 
-    private SubmarketGrid(float width, float buttonHeight, int columns, int count, int storage, float fixedWidth) {
+    private SubmarketGrid(float width, float buttonHeight, int columns, int count, int storage, float foldedWidth) {
         this.width = width;
         this.buttonHeight = buttonHeight;
         this.columns = Math.max(1, columns);
         this.count = count;
         this.storage = storage;
-        this.fixedWidth = fixedWidth;
+        this.foldedWidth = foldedWidth;
     }
 
     public static SubmarketGrid of(ButtonLayout layout, float width, float buttonHeight, float vanillaWidth,
@@ -35,10 +35,6 @@ public final class SubmarketGrid {
         return switch (layout) {
             case STRETCHED -> new SubmarketGrid(width, buttonHeight, vanillaColumns(width, vanillaWidth),
                     count, storage, 0f);
-            // the render panel pins the icon to the left, a wider tile leaves it off center
-            case ICONS -> new SubmarketGrid(width, buttonHeight,
-                    (int) ((width + GAP) / (iconOnlyWidth(buttonHeight) + GAP)), count, storage,
-                    iconOnlyWidth(buttonHeight));
             case FIVE_PER_ROW -> new SubmarketGrid(width, buttonHeight, FIVE, count, storage, 0f);
             // folded icon tiles plus one tile opened to the vanilla width, positions come from UnfoldRows
             case UNFOLD -> new SubmarketGrid(width, buttonHeight,
@@ -61,7 +57,7 @@ public final class SubmarketGrid {
         return (buttonHeight - 2 * BORDER) * 640f / 400f;
     }
 
-    // icon 4 px from both edges; the highlight strip goes to -1 px here, ButtonHighlightPatch skips it
+    // folded unfold tile: icon 4 px from both edges; the highlight strip goes to -1 px here, ButtonHighlightPatch skips it
     public static float iconOnlyWidth(float buttonHeight) {
         return iconWidth(buttonHeight) + 2 * BORDER;
     }
@@ -80,9 +76,7 @@ public final class SubmarketGrid {
     }
 
     public float left(int slot) {
-        int column = slot % columns;
-        if (fixedWidth <= 0f) return edge(column);
-        return columns == 1 ? 0f : Math.round(column * (width - fixedWidth) / (columns - 1));
+        return edge(slot % columns);
     }
 
     public float top(int slot) {
@@ -90,7 +84,6 @@ public final class SubmarketGrid {
     }
 
     public float buttonWidth(int slot) {
-        if (fixedWidth > 0f) return fixedWidth;
         int column = slot % columns;
         return edge(column + 1) - GAP - edge(column);
     }
