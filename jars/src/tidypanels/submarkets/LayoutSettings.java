@@ -6,6 +6,7 @@ public final class LayoutSettings {
 
     public static final String MOD_ID = "tidypanels";
     public static final String LAYOUT = "tidypanels_layout";
+    public static final String TILE_UNFOLD = "tidypanels_tile_unfold";
     public static final String UNFOLD_TIME = "tidypanels_unfold_time";
     // seconds; defaultValue, minValue and maxValue in data/config/LunaSettings.csv
     public static final float UNFOLD_TIME_DEFAULT = 0.1f;
@@ -24,6 +25,10 @@ public final class LayoutSettings {
     // read once per strip build, which only happens when a screen opens
     public static ButtonLayout layout() {
         return ButtonLayout.byLabel(LunaSettings.getString(MOD_ID, LAYOUT));
+    }
+
+    public static TileUnfold tileUnfold() {
+        return TileUnfold.byLabel(LunaSettings.getString(MOD_ID, TILE_UNFOLD));
     }
 
     public static float unfoldTime() {

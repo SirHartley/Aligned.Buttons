@@ -2,13 +2,12 @@ package tidypanels.submarkets;
 
 public enum ButtonLayout {
 
+    TILES("Tiles"),
     STRETCHED("Stretched"),
-    FIVE_PER_ROW("Five per row"),
-    ICONS("Icons only"),
-    UNFOLD("Unfold on hover");
+    FIVE_PER_ROW("Five per row");
 
-    // defaultValue in data/config/LunaSettings.csv
-    public static final ButtonLayout DEFAULT = UNFOLD;
+    // defaultValue in data/config/LunaSettings.csv; a saved 1.0.a "Unfold on hover" falls back to it
+    public static final ButtonLayout DEFAULT = TILES;
 
     // radio option text in data/config/LunaSettings.csv, also what LunaLib saves
     public final String label;

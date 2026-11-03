@@ -36,8 +36,8 @@ public final class SubmarketGrid {
             case STRETCHED -> new SubmarketGrid(width, buttonHeight, vanillaColumns(width, vanillaWidth),
                     count, storage, 0f);
             case FIVE_PER_ROW -> new SubmarketGrid(width, buttonHeight, FIVE, count, storage, 0f);
-            // folded icon tiles plus one tile opened to the vanilla width, positions come from UnfoldRows
-            case ICONS, UNFOLD -> new SubmarketGrid(width, buttonHeight,
+            // folded icon tiles plus one tile opened to vanillaWidth, positions come from UnfoldRows
+            case TILES -> new SubmarketGrid(width, buttonHeight,
                     unfoldColumns(width, buttonHeight, Math.max(vanillaWidth, iconOnlyWidth(buttonHeight))),
                     count, storage, iconOnlyWidth(buttonHeight));
         };

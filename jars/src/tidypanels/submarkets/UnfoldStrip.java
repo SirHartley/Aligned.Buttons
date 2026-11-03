@@ -17,13 +17,13 @@ final class UnfoldStrip {
     private final UnfoldRows rows;
     // weak, this state lives in the strip's patch data and must not keep the strip's children alive
     private final List<WeakReference<ButtonAPI>> buttons = new ArrayList<>();
-    // false for icons only, where a click opens a tile and the cursor does nothing
-    private final boolean hover;
+    // what picks the open tile; never has open width equal to folded width, so nothing moves
+    private final TileUnfold unfold;
     private boolean settled;
 
-    UnfoldStrip(UnfoldRows rows, List<ButtonAPI> buttons, boolean hover) {
+    UnfoldStrip(UnfoldRows rows, List<ButtonAPI> buttons, TileUnfold unfold) {
         this.rows = rows;
-        this.hover = hover;
+        this.unfold = unfold;
         for (ButtonAPI button : buttons) this.buttons.add(new WeakReference<>(button));
     }
 
@@ -45,7 +45,7 @@ final class UnfoldStrip {
             apply();
             return;
         }
-        if (hover) aimAtCursor(strip);
+        if (unfold == TileUnfold.HOVER) aimAtCursor(strip);
         if (rows.step(amount)) apply();
     }
 
@@ -60,9 +60,9 @@ final class UnfoldStrip {
         }
     }
 
-    // icons only: the clicked tile unfolds over the unfold time, advance runs the animation
+    // on click: the clicked tile unfolds over the unfold time, advance runs the animation
     void selectionChanged() {
-        if (hover) return;
+        if (unfold != TileUnfold.CLICK) return;
         for (int i = 0; i < buttons.size(); i++) {
             ButtonAPI button = buttons.get(i).get();
             if (button != null && button.isHighlighted()) rows.aim(i);
