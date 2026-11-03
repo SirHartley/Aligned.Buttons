@@ -1,4 +1,4 @@
-package alignedbuttons.tools;
+package tidypanels.tools;
 
 public final class ReleaseBuildChecks {
 
@@ -46,7 +46,7 @@ public final class ReleaseBuildChecks {
 
     private static void checkFiles() {
         require(ReleaseBuild.releaseFile("Changelog"), "changelog shipped");
-        require(ReleaseBuild.releaseFile("AlignedButtons.version"), "version file shipped");
+        require(ReleaseBuild.releaseFile("TidyPanels.version"), "version file shipped");
         require(ReleaseBuild.releaseFile("data/config/version/version_files.csv"), "data shipped");
         require(ReleaseBuild.releaseFile("graphics/" + ReleaseBuild.ASSET_DIR + "/icon.png"), "graphics shipped");
         require(!ReleaseBuild.releaseFile("graphics/" + ReleaseBuild.ASSET_DIR + "/note.txt"), "notes skipped");

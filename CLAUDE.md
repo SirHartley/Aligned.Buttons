@@ -1,6 +1,6 @@
-# Aligned.Buttons
+# Tidy.Panels
 
-Starsector mod (game `0.98a`) that uses PatchLib to line the submarket buttons on the cargo and fleet screens up into an even grid that fills each row, with the storage button in the last column.
+Starsector mod (game `0.98a`) of small UI panel fixes built on PatchLib. Each panel it changes has its own package; the first, `submarkets`, lines the submarket buttons on the cargo and fleet screens up into rows that fill the panel, with the storage button at the right end of the last row.
 
 ## Required workflow
 
@@ -15,7 +15,7 @@ When the user asks for a plan, or to check something as a possible change, post 
 1. Read the current remote `CLAUDE.md` in full at the start of each new task. Within the same task, reuse the version already read unless the instructions change. Read new or changed instruction files before following them.
 2. Use the `starsector-knowledge` skill before answering or changing anything related to Starsector. It covers one exact game version. Do not rely on memory.
    - Load the `house-style` skill for every task. Its personal rules (answers, vocabulary, comments, commits, punctuation) take precedence over older wording in this repository.
-   - Load the `patchlib` skill before deciding on, planning, writing or reviewing a PatchLib patch, and before changing any patch class (`*Patch.java`) in `jars/src/alignedbuttons/submarkets`.
+   - Load the `patchlib` skill before deciding on, planning, writing or reviewing a PatchLib patch, and before changing any patch class (`*Patch.java`) in `jars/src/tidypanels/submarkets`.
 3. If the skill is incomplete, inspect the read-only jars under `lib/` (game API, PatchLib API, LunaLib, LazyLib). Extract them to a temporary directory, never into the repository. `lib/PatchLibAPI.jar` bundles the PatchLib API sources; when they differ from the `patchlib` skill's copy, the jar wins.
 4. Select the required guides using [Which guide to read](#which-guide-to-read). Apply every matching row, including for reviews and fixes to existing behavior.
 
@@ -49,7 +49,7 @@ After reading this file, use the task to choose the next document. Read the rele
 - Do not deploy or synchronize after merge unless the user explicitly requests it.
 - The mod stores nothing in saves and is marked `utility` in `mod_info.json`, so players can add or remove it mid-save. Keep it that way; say in the PR if a change would put anything in sector memory.
 - Never put an obfuscated game name in code: not in a matcher, cast, import or reflection lookup. A comment that records one, labelled with the build it was seen on, is fine.
-- Keep all tools and automated checks under `jars/src/alignedbuttons/tools`, in the normal module. Do not add separate test source trees or duplicate platform classes. Tools may read existing constants and types; do not change runtime classes to support them.
+- Keep all tools and automated checks under `jars/src/tidypanels/tools`, in the normal module. Do not add separate test source trees or duplicate platform classes. Tools may read existing constants and types; do not change runtime classes to support them.
 - Prefer listeners and existing callbacks over polling. Before adding or retaining a polling solution, verify against the exact source that no existing callback covers the requirement. Document the missing coverage and keep the scan scope and frequency to what the behavior needs.
 
 ### Validate and merge
@@ -57,7 +57,7 @@ After reading this file, use the task to choose the next document. Read the rele
 - Every runtime-affecting final branch must pass the clean build described in [Building](#building).
 - Build the exact final remote task-branch revision. Earlier builds, partial builds, IDE analysis and static checks do not satisfy the gate.
 - Missing compilers or required dependencies are merge blockers. Documentation-only changes do not require a build.
-- A change to anything under `jars/src/alignedbuttons/submarkets` or to `data/config/LunaSettings.csv` must pass `tools/LayoutChecks`. The command is in [ARCHITECTURE.md](docs/ARCHITECTURE.md#build-and-checks).
+- A change to anything under `jars/src/tidypanels/submarkets` or to `data/config/LunaSettings.csv` must pass `tools/LayoutChecks`. The command is in [ARCHITECTURE.md](docs/ARCHITECTURE.md#build-and-checks).
 - No CI runs on pushes or pull requests. The release workflow runs only when started by hand on request; do not add triggers or check workflows.
 - Open a pull request and merge it when the work is complete. Do not leave finished work on an unmerged branch.
 - Use the connected GitHub app to create, inspect, and merge pull requests.
@@ -166,7 +166,7 @@ After the final runtime-affecting commit and before merge:
 6. Stop before merge if the build or a required dependency is unavailable.
 
 ```sh
-java jars/src/alignedbuttons/tools/ReleaseBuild.java build
+java jars/src/tidypanels/tools/ReleaseBuild.java build
 ```
 
 `lib/` holds the game's bundled libraries; never substitute Maven versions. Starsector's `JSONException` is checked and a newer JSON jar hides that. The `build` output is gitignored; committing or publishing it is release work.

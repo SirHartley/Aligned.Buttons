@@ -1,12 +1,12 @@
-package alignedbuttons.tools;
+package tidypanels.tools;
 
-import alignedbuttons.submarkets.ButtonLayout;
-import alignedbuttons.submarkets.LayoutSettings;
-import alignedbuttons.submarkets.OutlineRing;
-import alignedbuttons.submarkets.SelectedHighlight;
-import alignedbuttons.submarkets.SelectedOutlinePatch;
-import alignedbuttons.submarkets.SubmarketGrid;
-import alignedbuttons.submarkets.UnfoldRows;
+import tidypanels.submarkets.ButtonLayout;
+import tidypanels.submarkets.LayoutSettings;
+import tidypanels.submarkets.OutlineRing;
+import tidypanels.submarkets.SelectedHighlight;
+import tidypanels.submarkets.SelectedOutlinePatch;
+import tidypanels.submarkets.SubmarketGrid;
+import tidypanels.submarkets.UnfoldRows;
 
 import java.awt.Color;
 import java.nio.file.Files;
@@ -281,7 +281,7 @@ public final class LayoutChecks {
             if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
             if (cells.get(0).equals(LayoutSettings.SELECTED_HIGHLIGHT)) highlight = cells;
             if (cells.get(0).equals(LayoutSettings.FIX_CORNERS)) corners = cells;
-            order.add(cells.get(0));
+            if (!cells.get(2).equals("Header")) order.add(cells.get(0));
         }
         require(time != null, "unfold time setting registered");
         require(time.get(2).equals("Double"), "unfold time is a double");

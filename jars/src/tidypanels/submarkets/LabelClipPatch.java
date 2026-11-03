@@ -1,4 +1,4 @@
-package alignedbuttons.submarkets;
+package tidypanels.submarkets;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;

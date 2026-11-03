@@ -1,0 +1,12 @@
+{
+    "masterVersionFile":"https://raw.githubusercontent.com/SirHartley/Tidy.Panels/master/TidyPanels.version",
+    "modName":"Tidy.Panels",
+    "modVersion":
+    {
+        "major":1,
+        "minor":0,
+        "patch":"a"
+    },
+    "directDownloadURL":"https://github.com/SirHartley/Tidy.Panels/releases/download/1.0.a/Tidy.Panels-1.0.a.zip",
+    "changelogURL":"https://raw.githubusercontent.com/SirHartley/Tidy.Panels/refs/heads/master/Changelog",
+}

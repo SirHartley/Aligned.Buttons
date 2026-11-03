@@ -1,12 +1,12 @@
 {
-    "id": "aligned_buttons",
-    "name": "Aligned.Buttons",
+    "id": "tidy_panels",
+    "name": "Tidy.Panels",
     "author": "SirHartley",
     "utility": true,
     "version": "1.0.a",
-    "description": "Aligns market buttons on the cargo and fleet screens. Choose full labels or icons that expand on hover, with a highlight for the selected market.",
+    "description": "Small fixes for Starsector's UI panels. Currently aligns market buttons on the cargo and fleet screens, with full labels or icons that expand on hover and a highlight for the selected market.",
     "gameVersion": "0.98a",
-    "jars": ["jars/AlignedButtons.jar"],
+    "jars": ["jars/TidyPanels.jar"],
     "dependencies": [
         {
             "id": "patchlib",

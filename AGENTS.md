@@ -1,4 +1,4 @@
-# Aligned.Buttons
+# Tidy.Panels
 
 Read [CLAUDE.md](CLAUDE.md) in full before starting a task. It is the shared project instruction file for every coding agent.
 
