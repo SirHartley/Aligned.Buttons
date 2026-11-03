@@ -4,6 +4,7 @@ public enum ButtonLayout {
 
     STRETCHED("Stretched"),
     FIVE_PER_ROW("Five per row"),
+    ICONS("Icons only"),
     UNFOLD("Unfold on hover");
 
     // defaultValue in data/config/LunaSettings.csv
