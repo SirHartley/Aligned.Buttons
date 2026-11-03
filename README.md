@@ -1,6 +1,6 @@
 # Tidy.Panels
 
-Small fixes for Starsector's UI panels. It currently aligns the market buttons on the cargo and fleet screens. Rows fill the panel width, with Storage at the right end of the last row.
+Small fixes for Starsector's UI panels. Currently aligns the market buttons on the cargo and fleet screens.
 
 Choose between full labels or compact icons that expand on hover. The selected market gets a highlight in its faction's color.
 
