@@ -4,7 +4,7 @@
     "author": "SirHartley",
     "utility": true,
     "version": "1.0.a",
-    "description": "Small fixes for Starsector's UI panels. Currently aligns market buttons on the cargo and fleet screens, with full labels or icons that expand on hover and a highlight for the selected market.",
+    "description": "Small fixes for Starsector's UI panels.",
     "gameVersion": "0.98a",
     "jars": ["jars/TidyPanels.jar"],
     "dependencies": [
