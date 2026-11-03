@@ -32,7 +32,7 @@ public final class ReleaseBuild {
 
     static final String MOD = "tidypanels";
     static final String FOLDER = "Tidy.Panels";
-    static final String ASSET_DIR = "tidy_panels";
+    static final String ASSET_DIR = "tidypanels";
     static final String RELEASES = "https://github.com/SirHartley/Tidy.Panels/releases";
 
     static final String VERSION_FILE = "TidyPanels.version";

@@ -1,6 +1,6 @@
 fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
-tidy_panels_submarkets_header,Submarket buttons,Header,Submarket buttons,,,,,
-tidy_panels_layout,Submarket button layout,Radio,Unfold on hover,"Stretched,Five per row,Unfold on hover",Unfold on hover (default): icons expand to show names; the last hovered button stays open. Stretched: keeps the vanilla button count per row. Five per row: fits five named buttons per row. All layouts fill the panel width with Storage at the bottom right. Reopen the screen to apply.,,,
-tidy_panels_selected_highlight,Selected button highlight,Radio,Animated,"Off,Bright band,Animated",Animated (default): lights move around the selected button in its faction's color. Bright band: a fixed outline. Off: vanilla appearance. Reopen the screen to apply.,,,
-tidy_panels_unfold_time,Unfold time,Double,0.1,,Seconds to expand a button in Unfold on hover. Default: 0.1. Set to 0 for instant expansion. Reopen the screen to apply.,0,1,
-tidy_panels_fix_corners,Fix button corners,Boolean,TRUE,,Trims square background corners that stick out past the button frame. On by default. Reopen the screen to apply.,,,
+tidypanels_submarkets_header,Submarket buttons,Header,Submarket buttons,,,,,
+tidypanels_layout,Submarket button layout,Radio,Unfold on hover,"Stretched,Five per row,Unfold on hover",Unfold on hover (default): icons expand to show names; the last hovered button stays open. Stretched: keeps the vanilla button count per row. Five per row: fits five named buttons per row. All layouts fill the panel width with Storage at the bottom right. Reopen the screen to apply.,,,
+tidypanels_selected_highlight,Selected button highlight,Radio,Animated,"Off,Bright band,Animated",Animated (default): lights move around the selected button in its faction's color. Bright band: a fixed outline. Off: vanilla appearance. Reopen the screen to apply.,,,
+tidypanels_unfold_time,Unfold time,Double,0.1,,Seconds to expand a button in Unfold on hover. Default: 0.1. Set to 0 for instant expansion. Reopen the screen to apply.,0,1,
+tidypanels_fix_corners,Fix button corners,Boolean,TRUE,,Trims square background corners that stick out past the button frame. On by default. Reopen the screen to apply.,,,
