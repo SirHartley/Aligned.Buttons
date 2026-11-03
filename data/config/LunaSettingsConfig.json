@@ -1,5 +1,5 @@
 {
-    "tidy_panels": {
-        "iconPath":"graphics/tidy_panels/icon.png",
+    "tidypanels": {
+        "iconPath":"graphics/tidypanels/icon.png",
     }
 }

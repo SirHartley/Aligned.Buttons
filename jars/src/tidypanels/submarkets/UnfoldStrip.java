@@ -12,7 +12,7 @@ import java.util.List;
 final class UnfoldStrip {
 
     // patch data key on the strip, the store is shared with other mods' patches
-    static final String KEY = "tidy_panels_unfold";
+    static final String KEY = "tidypanels_unfold";
 
     private final UnfoldRows rows;
     // weak, this state lives in the strip's patch data and must not keep the strip's children alive
