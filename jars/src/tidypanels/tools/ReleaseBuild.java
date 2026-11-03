@@ -1,4 +1,4 @@
-package alignedbuttons.tools;
+package tidypanels.tools;
 
 import javax.tools.ToolProvider;
 import java.io.ByteArrayOutputStream;
@@ -30,15 +30,15 @@ import java.util.zip.ZipOutputStream;
 
 public final class ReleaseBuild {
 
-    static final String MOD = "alignedbuttons";
-    static final String FOLDER = "Aligned.Buttons";
-    static final String ASSET_DIR = "aligned_buttons";
-    static final String RELEASES = "https://github.com/SirHartley/Aligned.Buttons/releases";
+    static final String MOD = "tidypanels";
+    static final String FOLDER = "Tidy.Panels";
+    static final String ASSET_DIR = "tidy_panels";
+    static final String RELEASES = "https://github.com/SirHartley/Tidy.Panels/releases";
 
-    static final String VERSION_FILE = "AlignedButtons.version";
-    static final String JAR = "jars/release/AlignedButtons.jar";
+    static final String VERSION_FILE = "TidyPanels.version";
+    static final String JAR = "jars/release/TidyPanels.jar";
     // mod_info.json loads this path, the ide artifact uses it too
-    static final String SHIPPED_JAR = "jars/AlignedButtons.jar";
+    static final String SHIPPED_JAR = "jars/TidyPanels.jar";
     static final String SOURCE = "jars/src/";
     static final String TOOLS = SOURCE + MOD + "/tools/";
     static final String TOOL = TOOLS + "ReleaseBuild.java";

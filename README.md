@@ -1,6 +1,6 @@
-# Aligned.Buttons
+# Tidy.Panels
 
-Aligns the market buttons on Starsector's cargo and fleet screens. Rows fill the panel width, with Storage at the right end of the last row.
+Small fixes for Starsector's UI panels. It currently aligns the market buttons on the cargo and fleet screens. Rows fill the panel width, with Storage at the right end of the last row.
 
 Choose between full labels or compact icons that expand on hover. The selected market gets a highlight in its faction's color.
 
@@ -12,9 +12,9 @@ Choose between full labels or compact icons that expand on hover. The selected m
 
 ## Installation
 
-1. Download the ZIP from the [latest release](https://github.com/SirHartley/Aligned.Buttons/releases/latest).
+1. Download the ZIP from the [latest release](https://github.com/SirHartley/Tidy.Panels/releases/latest).
 2. Extract it into `Starsector/mods/`.
-3. Enable Aligned.Buttons and its dependencies in the launcher.
+3. Enable Tidy.Panels and its dependencies in the launcher.
 
 Safe to add or remove during a campaign. Supports Version Checker.
 

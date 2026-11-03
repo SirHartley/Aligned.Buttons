@@ -1,18 +1,18 @@
-package alignedbuttons.submarkets;
+package tidypanels.submarkets;
 
 import lunalib.lunaSettings.LunaSettings;
 
 public final class LayoutSettings {
 
-    public static final String MOD_ID = "aligned_buttons";
-    public static final String LAYOUT = "aligned_buttons_layout";
-    public static final String UNFOLD_TIME = "aligned_buttons_unfold_time";
+    public static final String MOD_ID = "tidy_panels";
+    public static final String LAYOUT = "tidy_panels_layout";
+    public static final String UNFOLD_TIME = "tidy_panels_unfold_time";
     // seconds; defaultValue, minValue and maxValue in data/config/LunaSettings.csv
     public static final float UNFOLD_TIME_DEFAULT = 0.1f;
     public static final float UNFOLD_TIME_MIN = 0f;
     public static final float UNFOLD_TIME_MAX = 1f;
-    public static final String SELECTED_HIGHLIGHT = "aligned_buttons_selected_highlight";
-    public static final String FIX_CORNERS = "aligned_buttons_fix_corners";
+    public static final String SELECTED_HIGHLIGHT = "tidy_panels_selected_highlight";
+    public static final String FIX_CORNERS = "tidy_panels_fix_corners";
     public static final boolean FIX_CORNERS_DEFAULT = true;
 
     private static SelectedHighlight selectedHighlight = SelectedHighlight.DEFAULT;

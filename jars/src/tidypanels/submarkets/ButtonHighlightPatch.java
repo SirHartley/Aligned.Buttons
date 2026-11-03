@@ -1,4 +1,4 @@
-package alignedbuttons.submarkets;
+package tidypanels.submarkets;
 
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import patchlib.api.context.MethodCallContext;

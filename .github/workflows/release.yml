@@ -36,11 +36,11 @@ jobs:
         run: |
           mkdir -p out/release-tools
           javac --release 17 -encoding UTF-8 -d out/release-tools \
-            jars/src/alignedbuttons/tools/ReleaseBuild.java \
-            jars/src/alignedbuttons/tools/ReleaseBuildChecks.java
-          java -cp out/release-tools alignedbuttons.tools.ReleaseBuildChecks
+            jars/src/tidypanels/tools/ReleaseBuild.java \
+            jars/src/tidypanels/tools/ReleaseBuildChecks.java
+          java -cp out/release-tools tidypanels.tools.ReleaseBuildChecks
       - name: Build release jar
-        run: java -cp out/release-tools alignedbuttons.tools.ReleaseBuild build
+        run: java -cp out/release-tools tidypanels.tools.ReleaseBuild build
       - name: Package
         id: package
         env:
@@ -57,16 +57,16 @@ jobs:
           fi
           args=()
           if [ -n "$VERSION" ]; then args+=("$VERSION"); fi
-          java -cp out/release-tools alignedbuttons.tools.ReleaseBuild package "${args[@]}"
+          java -cp out/release-tools tidypanels.tools.ReleaseBuild package "${args[@]}"
           echo "version=$(cat out/release/version.txt)" >> "$GITHUB_OUTPUT"
           if [ -n "$VERSION" ]; then echo "release=true" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: Aligned.Buttons-${{ steps.package.outputs.version }}
+          name: Tidy.Panels-${{ steps.package.outputs.version }}
           path: |
-            out/release/Aligned.Buttons-[0-9]*.zip
+            out/release/Tidy.Panels-[0-9]*.zip
             out/release/release-notes.md
-            out/release/AlignedButtons.version
+            out/release/TidyPanels.version
           if-no-files-found: error
           retention-days: 14
 
@@ -87,7 +87,7 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
           SHA: ${{ github.sha }}
         run: |
-          gh run download "$RUN_ID" --repo "$GH_REPO" --name "Aligned.Buttons-$VERSION" --dir release
+          gh run download "$RUN_ID" --repo "$GH_REPO" --name "Tidy.Panels-$VERSION" --dir release
           if gh release view "$VERSION" --repo "$GH_REPO" >/dev/null 2>&1; then
             echo "::error::Release $VERSION already exists; published releases are never overwritten."
             exit 1
@@ -101,8 +101,8 @@ jobs:
           else
             target=(--target "$SHA")
           fi
-          gh release create "$VERSION" "release/Aligned.Buttons-$VERSION.zip" \
-            --repo "$GH_REPO" "${target[@]}" --title "Aligned.Buttons $VERSION" \
+          gh release create "$VERSION" "release/Tidy.Panels-$VERSION.zip" \
+            --repo "$GH_REPO" "${target[@]}" --title "Tidy.Panels $VERSION" \
             --notes-file release/release-notes.md
       # master's version file is the online one, so only point it at a release that exists
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -113,10 +113,10 @@ jobs:
         env:
           VERSION: ${{ needs.package.outputs.version }}
         run: |
-          cp release/AlignedButtons.version master/AlignedButtons.version
+          cp release/TidyPanels.version master/TidyPanels.version
           cd master
-          if git diff --quiet -- AlignedButtons.version; then exit 0; fi
+          if git diff --quiet -- TidyPanels.version; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "update version file to $VERSION" -- AlignedButtons.version
+          git commit -m "update version file to $VERSION" -- TidyPanels.version
           git push origin HEAD:master

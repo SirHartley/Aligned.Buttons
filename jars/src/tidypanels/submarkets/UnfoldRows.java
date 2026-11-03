@@ -1,4 +1,4 @@
-package alignedbuttons.submarkets;
+package tidypanels.submarkets;
 
 import java.util.Arrays;
 
