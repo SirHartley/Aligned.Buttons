@@ -4,7 +4,7 @@
     "author": "SirHartley",
     "utility": true,
     "version": "1.0.a",
-    "description": "Lines the submarket buttons on the cargo and fleet screens up into an even grid that fills each row, with the storage button in the last column.",
+    "description": "Aligns market buttons on the cargo and fleet screens. Choose full labels or icons that expand on hover, with a highlight for the selected market.",
     "gameVersion": "0.98a",
     "jars": ["jars/AlignedButtons.jar"],
     "dependencies": [
