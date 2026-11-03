@@ -8,7 +8,7 @@ None
 
 --------------------------- Changelog -----------------------------
 
-1.0.a - UNRELEASED
+1.0.a
 Added - Market buttons fill each row on the cargo and fleet screens, with Storage at the bottom right
 Added - Three layouts: Unfold on hover (default), Stretched and Five per row
 Added - Adjustable unfold time from 0 to 1 second, defaulting to 0.1
