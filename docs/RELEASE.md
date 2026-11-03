@@ -46,7 +46,7 @@ java jars/src/tidypanels/tools/ReleaseBuild.java package 1.0.a    # release
 - Needs a release jar from `build`.
 - Preview packages the newest changelog section.
 - Release requires the version (`1.0.a`, no `v`) to equal the newest changelog heading, and that section must not be `UNRELEASED`.
-- Ships Git-tracked files only: `mod_info.json`, `TidyPanels.version`, `Changelog`, licence and credit files, `data/` (`csv json shader ship wpn proj system variant skin`), `graphics/` (`png jpg jpeg`), `sounds/` (`ogg wav`) and the release jar as `jars/TidyPanels.jar`. Source, `lib/`, docs, IDE, agent and workflow files, and any path under a dot, `unused`, `unedited`, `tools` or `docs` directory are left out.
+- Ships Git-tracked files only: `mod_info.json`, `TidyPanels.version`, `Changelog`, `LICENSE` (MIT, required in every package) and credit files, `data/` (`csv json shader ship wpn proj system variant skin`), `graphics/` (`png jpg jpeg`), `sounds/` (`ogg wav`) and the release jar as `jars/TidyPanels.jar`. Source, `lib/`, docs, IDE, agent and workflow files, and any path under a dot, `unused`, `unedited`, `tools` or `docs` directory are left out.
 - Fails if a `graphics/tidypanels/` or `sounds/tidypanels/` path named in `data/` is not packaged.
 - Output in `out/release/`: `Tidy.Panels-<version>.zip` (one `Tidy.Panels/` folder, sorted, fixed timestamps), `release-notes.md`, the stamped version file and `version.txt`.
 

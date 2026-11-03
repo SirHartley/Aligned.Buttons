@@ -46,6 +46,7 @@ public final class ReleaseBuildChecks {
 
     private static void checkFiles() {
         require(ReleaseBuild.releaseFile("Changelog"), "changelog shipped");
+        require(ReleaseBuild.releaseFile("LICENSE") && ReleaseBuild.REQUIRED.contains("LICENSE"), "license shipped and required");
         require(ReleaseBuild.releaseFile("TidyPanels.version"), "version file shipped");
         require(ReleaseBuild.releaseFile("data/config/version/version_files.csv"), "data shipped");
         require(ReleaseBuild.releaseFile("graphics/" + ReleaseBuild.ASSET_DIR + "/icon.png"), "graphics shipped");

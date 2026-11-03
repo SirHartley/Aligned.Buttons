@@ -55,7 +55,8 @@ public final class ReleaseBuild {
 
     static final Set<String> ROOT_FILES = Set.of("mod_info.json", VERSION_FILE, "Changelog",
             "LICENSE", "LICENSE.txt", "LICENSE.md", "NOTICE", "CREDITS", "CREDITS.txt", "CREDITS.md");
-    static final List<String> REQUIRED = List.of("Changelog", "mod_info.json", VERSION_FILE,
+    // mit: every copy carries the license
+    static final List<String> REQUIRED = List.of("Changelog", "mod_info.json", VERSION_FILE, "LICENSE",
             "data/config/LunaSettings.csv");
     static final Set<String> NOTICES = Set.of();
     static final Map<String, Set<String>> ASSETS = Map.of(
