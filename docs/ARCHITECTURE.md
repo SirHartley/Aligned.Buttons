@@ -34,6 +34,7 @@ Technical routing for the current implementation, checked against game `0.98a-RC
 | `mod_info.json` | No `modPlugin`; jar `jars/TidyPanels.jar`; dependencies PatchLib, LunaLib; `utility` because nothing is saved |
 | PatchLib discovery | PatchLib scans `jars/TidyPanels.jar` for `@Patch` classes and installs `submarkets/SubmarketButtonPatch` when the strip class loads and `submarkets/ButtonHighlightPatch`, `submarkets/SelectedOutlinePatch`, `submarkets/LabelClipPatch` and `submarkets/ChamferedFillPatch` when the button render panel class loads; nothing is registered by hand |
 | `data/config/LunaSettings.csv` | A `Submarket buttons` header, then the four settings in their order (layout, selected highlight, unfold time, fix corners) and their help text. A later panel feature gets its own header |
+| `data/config/LunaSettingsConfig.json` | LunaLib settings icon for `tidy_panels`: `graphics/tidy_panels/icon.png` (40 x 40), loaded by LunaLib with `loadTexture` |
 | `data/config/version/version_files.csv` | Version Checker entry for `TidyPanels.version` |
 
 There is no load order: the layout patch runs each time the game builds a submarket strip, which happens when the cargo or fleet screen opens at a market. For `UNFOLD` it stores an `UnfoldStrip` in the strip's PatchLib data under `tidy_panels_unfold`; the strip's `advanceImpl` hook animates it every frame while the screen is open. Nothing is saved.
