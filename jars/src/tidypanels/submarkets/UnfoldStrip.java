@@ -17,10 +17,13 @@ final class UnfoldStrip {
     private final UnfoldRows rows;
     // weak, this state lives in the strip's patch data and must not keep the strip's children alive
     private final List<WeakReference<ButtonAPI>> buttons = new ArrayList<>();
+    // false for icons only, where the selection opens a tile and the cursor does nothing
+    private final boolean hover;
     private boolean settled;
 
-    UnfoldStrip(UnfoldRows rows, List<ButtonAPI> buttons) {
+    UnfoldStrip(UnfoldRows rows, List<ButtonAPI> buttons, boolean hover) {
         this.rows = rows;
+        this.hover = hover;
         for (ButtonAPI button : buttons) this.buttons.add(new WeakReference<>(button));
     }
 
@@ -42,6 +45,7 @@ final class UnfoldStrip {
             apply();
             return;
         }
+        if (!hover) return;
         // the last hovered tile stays open after the cursor leaves
         PositionAPI position = strip.getPosition();
         float x = Global.getSettings().getMouseX() - position.getX();
@@ -51,6 +55,12 @@ final class UnfoldStrip {
             if (hovered >= 0) rows.aim(hovered);
         }
         if (rows.step(amount)) apply();
+    }
+
+    void selectionChanged() {
+        if (hover) return;
+        openSelected();
+        apply();
     }
 
     private void openSelected() {

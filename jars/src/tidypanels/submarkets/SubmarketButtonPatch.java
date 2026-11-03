@@ -48,8 +48,11 @@ public class SubmarketButtonPatch {
         PositionAPI first = buttons.get(0).getPosition();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));
-        if (layout == ButtonLayout.UNFOLD) {
-            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), LayoutSettings.unfoldTime()));
+        if (layout == ButtonLayout.UNFOLD || layout == ButtonLayout.ICONS) {
+            // icons only reuses the unfold views: the selected tile opens at once and the cursor does nothing
+            boolean hover = layout == ButtonLayout.UNFOLD;
+            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), hover ? LayoutSettings.unfoldTime() : 0f),
+                    hover);
         } else {
             place(context, buttons, grid, layout);
         }
@@ -77,7 +80,23 @@ public class SubmarketButtonPatch {
         unfold.advance(strip, (Float) context.getArg(0));
     }
 
-    private static void unfold(AfterContext context, List<ButtonAPI> buttons, UnfoldRows rows) {
+    // a click, selectFirst included, and the text dialog of a locked submarket are where the strip highlights a selection
+    @After(target = @MethodMatch(methodName = "actionPerformed", parameterCount = 2))
+    public static void afterActionPerformed(AfterContext context) {
+        selectionChanged(context);
+    }
+
+    @After(target = @MethodMatch(methodName = "dialogDismissed", parameterCount = 2))
+    public static void afterDialogDismissed(AfterContext context) {
+        selectionChanged(context);
+    }
+
+    private static void selectionChanged(AfterContext context) {
+        Object state = context.getData().get(UnfoldStrip.KEY);
+        if (state instanceof UnfoldStrip unfold) unfold.selectionChanged();
+    }
+
+    private static void unfold(AfterContext context, List<ButtonAPI> buttons, UnfoldRows rows, boolean hover) {
         for (int i = 0; i < buttons.size(); i++) {
             if (buttons.get(i).isHighlighted()) rows.openNow(i);
         }
@@ -88,7 +107,7 @@ public class SubmarketButtonPatch {
             label.setText(SubmarketGrid.fit(label.getText(),
                     rows.openWidth - SubmarketGrid.labelInset(height), label::computeTextWidth));
         }
-        UnfoldStrip strip = new UnfoldStrip(rows, buttons);
+        UnfoldStrip strip = new UnfoldStrip(rows, buttons, hover);
         strip.apply();
         context.getData().put(UnfoldStrip.KEY, strip);
     }

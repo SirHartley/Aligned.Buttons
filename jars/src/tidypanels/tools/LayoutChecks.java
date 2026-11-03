@@ -31,7 +31,7 @@ public final class LayoutChecks {
 
     public static void main(String[] args) throws Exception {
         for (ButtonLayout layout : ButtonLayout.values()) {
-            if (layout == ButtonLayout.UNFOLD) continue;
+            if (layout == ButtonLayout.UNFOLD || layout == ButtonLayout.ICONS) continue;
             for (float width : WIDTHS) {
                 for (int count = 1; count <= 12; count++) {
                     checkGrid(layout, SubmarketGrid.of(layout, width, HEIGHT, VANILLA_WIDTH, count, count - 1));
@@ -50,6 +50,12 @@ public final class LayoutChecks {
         }
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
         require(grid(ButtonLayout.UNFOLD, 903f).columns == 10, "ten unfold columns at 903 px");
+        for (float width : WIDTHS) {
+            SubmarketGrid icons = SubmarketGrid.of(ButtonLayout.ICONS, width, HEIGHT, VANILLA_WIDTH, 7, 6);
+            SubmarketGrid unfold = SubmarketGrid.of(ButtonLayout.UNFOLD, width, HEIGHT, VANILLA_WIDTH, 7, 6);
+            require(icons.columns == unfold.columns && icons.foldedWidth == unfold.foldedWidth,
+                    "icons only uses the unfold grid at " + width + " px");
+        }
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
         require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px folded tiles");
         // vanilla draws the icon at x = BORDER, so the folded tile's right inset must match it exactly
