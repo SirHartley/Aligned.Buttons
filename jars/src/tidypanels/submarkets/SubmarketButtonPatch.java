@@ -49,10 +49,9 @@ public class SubmarketButtonPatch {
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
                 first.getWidth(), buttons.size(), storageIndex(buttons));
         if (layout == ButtonLayout.UNFOLD || layout == ButtonLayout.ICONS) {
-            // icons only reuses the unfold views: the selected tile opens at once and the cursor does nothing
-            boolean hover = layout == ButtonLayout.UNFOLD;
-            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), hover ? LayoutSettings.unfoldTime() : 0f),
-                    hover);
+            // icons only reuses the unfold views: a click unfolds the selected tile, the cursor does nothing
+            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), LayoutSettings.unfoldTime()),
+                    layout == ButtonLayout.UNFOLD);
         } else {
             place(context, buttons, grid, layout);
         }

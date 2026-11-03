@@ -9,7 +9,7 @@ None
 --------------------------- Changelog -----------------------------
 
 1.1.a - UNRELEASED
-Added - Icons only layout: only the selected market's button shows its name, with no hover animation
+Added - Icons only layout: only the selected market's button shows its name and unfolds when clicked; hovering does nothing
 
 1.0.a
 Added - Market buttons fill each row on the cargo and fleet screens, with Storage at the bottom right
