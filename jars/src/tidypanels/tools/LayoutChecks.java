@@ -6,6 +6,7 @@ import tidypanels.submarkets.OutlineRing;
 import tidypanels.submarkets.SelectedHighlight;
 import tidypanels.submarkets.SelectedOutlinePatch;
 import tidypanels.submarkets.SubmarketGrid;
+import tidypanels.submarkets.TileUnfold;
 import tidypanels.submarkets.UnfoldRows;
 
 import java.awt.Color;
@@ -31,7 +32,7 @@ public final class LayoutChecks {
 
     public static void main(String[] args) throws Exception {
         for (ButtonLayout layout : ButtonLayout.values()) {
-            if (layout == ButtonLayout.UNFOLD || layout == ButtonLayout.ICONS) continue;
+            if (layout == ButtonLayout.TILES) continue;
             for (float width : WIDTHS) {
                 for (int count = 1; count <= 12; count++) {
                     checkGrid(layout, SubmarketGrid.of(layout, width, HEIGHT, VANILLA_WIDTH, count, count - 1));
@@ -49,12 +50,10 @@ public final class LayoutChecks {
             }
         }
         require(grid(ButtonLayout.STRETCHED, 903f).columns == 4, "four stretched columns at 903 px");
-        require(grid(ButtonLayout.UNFOLD, 903f).columns == 10, "ten unfold columns at 903 px");
+        require(grid(ButtonLayout.TILES, 903f).columns == 10, "ten tile columns at 903 px");
+        float folded = SubmarketGrid.iconOnlyWidth(HEIGHT);
         for (float width : WIDTHS) {
-            SubmarketGrid icons = SubmarketGrid.of(ButtonLayout.ICONS, width, HEIGHT, VANILLA_WIDTH, 7, 6);
-            SubmarketGrid unfold = SubmarketGrid.of(ButtonLayout.UNFOLD, width, HEIGHT, VANILLA_WIDTH, 7, 6);
-            require(icons.columns == unfold.columns && icons.foldedWidth == unfold.foldedWidth,
-                    "icons only uses the unfold grid at " + width + " px");
+            for (int count = 1; count <= 12; count++) checkNever(width, count, folded);
         }
         require(grid(ButtonLayout.FIVE_PER_ROW, 903f).labelWidth(0) == 95f, "95 px for names at 903 px");
         require(SubmarketGrid.iconOnlyWidth(HEIGHT) == 72f, "72 px folded tiles");
@@ -116,9 +115,24 @@ public final class LayoutChecks {
         require(grid.rows() == rows + 1, "vanilla row count: " + width + " px, " + count + " buttons");
     }
 
+    // never unfold: open width equals folded width, so every tile stays folded and more fit per row
+    private static void checkNever(float width, int count, float folded) {
+        String name = "never unfold, " + width + " px, " + count + " buttons";
+        SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.TILES, width, HEIGHT, folded, count, count - 1);
+        require((grid.columns - 1) * (folded + SubmarketGrid.GAP) + folded <= width, "a full row of folded tiles fits: " + name);
+        require(grid.columns * (folded + SubmarketGrid.GAP) + folded > width, "as many folded tiles as fit: " + name);
+        UnfoldRows rows = new UnfoldRows(grid, folded, LayoutSettings.UNFOLD_TIME_DEFAULT);
+        for (int i = 0; i < count; i++) {
+            rows.aim(i);
+            rows.step(1f);
+            for (int j = 0; j < count; j++) require(rows.width(j) == folded, "no tile widens: " + name);
+        }
+        checkUnfoldRows(rows, name);
+    }
+
     private static void checkUnfold(float width, int count, int storage, float time) {
         String name = "unfold " + time + " s, " + width + " px, " + count + " buttons, storage " + storage;
-        SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.UNFOLD, width, HEIGHT, VANILLA_WIDTH, count, storage);
+        SubmarketGrid grid = SubmarketGrid.of(ButtonLayout.TILES, width, HEIGHT, VANILLA_WIDTH, count, storage);
         float folded = SubmarketGrid.iconOnlyWidth(HEIGHT);
         float step = SubmarketGrid.GAP + folded;
         require((grid.columns - 1) * step + VANILLA_WIDTH <= width, "a full row fits: " + name);
@@ -277,6 +291,7 @@ public final class LayoutChecks {
                 + "minValue,maxValue,tab"), "luna header");
         List<String> row = null;
         List<String> time = null;
+        List<String> tileUnfold = null;
         List<String> highlight = null;
         List<String> corners = null;
         List<String> order = new ArrayList<>();
@@ -285,6 +300,7 @@ public final class LayoutChecks {
             require(cells.size() == 9, "nine luna columns: " + cells.get(0));
             if (cells.get(0).equals(LayoutSettings.LAYOUT)) row = cells;
             if (cells.get(0).equals(LayoutSettings.UNFOLD_TIME)) time = cells;
+            if (cells.get(0).equals(LayoutSettings.TILE_UNFOLD)) tileUnfold = cells;
             if (cells.get(0).equals(LayoutSettings.SELECTED_HIGHLIGHT)) highlight = cells;
             if (cells.get(0).equals(LayoutSettings.FIX_CORNERS)) corners = cells;
             if (!cells.get(2).equals("Header")) order.add(cells.get(0));
@@ -301,8 +317,22 @@ public final class LayoutChecks {
         require(LayoutSettings.unfoldTime(-1.0) == LayoutSettings.UNFOLD_TIME_MIN, "time clamped at the minimum");
         require(LayoutSettings.unfoldTime(5.0) == LayoutSettings.UNFOLD_TIME_MAX, "time clamped at the maximum");
         require(LayoutSettings.unfoldTime(0.3) == 0.3f, "time kept");
-        require(order.equals(List.of(LayoutSettings.LAYOUT, LayoutSettings.SELECTED_HIGHLIGHT, LayoutSettings.UNFOLD_TIME,
-                LayoutSettings.FIX_CORNERS)), "settings in the agreed order: " + order);
+        require(order.equals(List.of(LayoutSettings.LAYOUT, LayoutSettings.TILE_UNFOLD, LayoutSettings.UNFOLD_TIME,
+                LayoutSettings.SELECTED_HIGHLIGHT, LayoutSettings.FIX_CORNERS)), "settings in the agreed order: " + order);
+        require(tileUnfold != null, "tile unfold setting registered");
+        require(tileUnfold.get(2).equals("Radio"), "tile unfold is a radio");
+        require(TileUnfold.DEFAULT == TileUnfold.HOVER, "on hover is the default tile unfold");
+        require(tileUnfold.get(3).equals(TileUnfold.DEFAULT.label), "csv default matches TileUnfold.DEFAULT");
+        require(tileUnfold.get(5).contains(TileUnfold.DEFAULT.label + " (default)"), "tile unfold help names the default");
+        List<String> unfoldOptions = new ArrayList<>();
+        for (String option : tileUnfold.get(4).split(",")) unfoldOptions.add(option.trim());
+        List<String> unfoldLabels = new ArrayList<>();
+        for (TileUnfold value : TileUnfold.values()) unfoldLabels.add(value.label);
+        require(unfoldOptions.equals(unfoldLabels), "radio options match TileUnfold: " + unfoldOptions);
+        for (TileUnfold value : TileUnfold.values()) {
+            require(TileUnfold.byLabel(value.label) == value, "label lookup " + value);
+        }
+        require(TileUnfold.byLabel(null) == TileUnfold.DEFAULT, "missing tile unfold falls back");
         require(highlight != null, "selected highlight setting registered");
         require(highlight.get(2).equals("Radio"), "selected highlight is a radio");
         require(SelectedHighlight.DEFAULT == SelectedHighlight.ANIMATED, "animated is the default highlight");
@@ -327,7 +357,8 @@ public final class LayoutChecks {
         require(!LayoutSettings.fixCorners(Boolean.FALSE), "fix corners off kept");
         require(row != null, "layout setting registered");
         require(row.get(2).equals("Radio"), "layout is a radio");
-        require(ButtonLayout.DEFAULT == ButtonLayout.UNFOLD, "unfold on hover is the default");
+        require(ButtonLayout.DEFAULT == ButtonLayout.TILES, "tiles is the default layout");
+        require(ButtonLayout.byLabel("Unfold on hover") == ButtonLayout.TILES, "a saved 1.0.a unfold on hover becomes tiles");
         require(row.get(3).equals(ButtonLayout.DEFAULT.label), "csv default matches ButtonLayout.DEFAULT");
         require(row.get(5).contains(ButtonLayout.DEFAULT.label + " (default)"), "help text names the default");
         List<String> options = new ArrayList<>();

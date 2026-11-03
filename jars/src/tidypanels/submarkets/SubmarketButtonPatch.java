@@ -46,12 +46,13 @@ public class SubmarketButtonPatch {
         ButtonLayout layout = LayoutSettings.layout();
         LayoutSettings.readRenderSettings();
         PositionAPI first = buttons.get(0).getPosition();
+        TileUnfold unfold = LayoutSettings.tileUnfold();
+        // never unfold: the open width is the folded width, so no tile ever widens
+        float openWidth = unfold == TileUnfold.NEVER ? SubmarketGrid.iconOnlyWidth(first.getHeight()) : first.getWidth();
         SubmarketGrid grid = SubmarketGrid.of(layout, strip.getPosition().getWidth(), first.getHeight(),
-                first.getWidth(), buttons.size(), storageIndex(buttons));
-        if (layout == ButtonLayout.UNFOLD || layout == ButtonLayout.ICONS) {
-            // icons only reuses the unfold views: a click unfolds the selected tile, the cursor does nothing
-            unfold(context, buttons, new UnfoldRows(grid, first.getWidth(), LayoutSettings.unfoldTime()),
-                    layout == ButtonLayout.UNFOLD);
+                layout == ButtonLayout.TILES ? openWidth : first.getWidth(), buttons.size(), storageIndex(buttons));
+        if (layout == ButtonLayout.TILES) {
+            tiles(context, buttons, new UnfoldRows(grid, openWidth, LayoutSettings.unfoldTime()), unfold);
         } else {
             place(context, buttons, grid, layout);
         }
@@ -95,7 +96,7 @@ public class SubmarketButtonPatch {
         if (state instanceof UnfoldStrip unfold) unfold.selectionChanged();
     }
 
-    private static void unfold(AfterContext context, List<ButtonAPI> buttons, UnfoldRows rows, boolean hover) {
+    private static void tiles(AfterContext context, List<ButtonAPI> buttons, UnfoldRows rows, TileUnfold unfold) {
         for (int i = 0; i < buttons.size(); i++) {
             if (buttons.get(i).isHighlighted()) rows.openNow(i);
         }
@@ -106,7 +107,7 @@ public class SubmarketButtonPatch {
             label.setText(SubmarketGrid.fit(label.getText(),
                     rows.openWidth - SubmarketGrid.labelInset(height), label::computeTextWidth));
         }
-        UnfoldStrip strip = new UnfoldStrip(rows, buttons, hover);
+        UnfoldStrip strip = new UnfoldStrip(rows, buttons, unfold);
         strip.apply();
         context.getData().put(UnfoldStrip.KEY, strip);
     }

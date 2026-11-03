@@ -9,7 +9,8 @@ None
 --------------------------- Changelog -----------------------------
 
 1.1.a - UNRELEASED
-Added - Icons only layout: only the selected market's button shows its name and unfolds when clicked; hovering does nothing
+Added - Tile unfold setting for the Tiles layout: On hover (default), On click (only the clicked market's tile expands) or Never (icons only)
+Adjusted - The Unfold on hover layout is now called Tiles; a saved Unfold on hover becomes Tiles with On hover
 
 1.0.a
 Added - Market buttons fill each row on the cargo and fleet screens, with Storage at the bottom right
