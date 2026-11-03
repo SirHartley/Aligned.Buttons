@@ -35,6 +35,10 @@ With **Unfold on hover**, the last hovered button stays expanded. Each row keeps
 
 Works with markets added by other mods. Conflicts with mods that also reposition these buttons.
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
 ## Development
 
 See [build and release instructions](docs/RELEASE.md) and the [code reference](docs/ARCHITECTURE.md).
