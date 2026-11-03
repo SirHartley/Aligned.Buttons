@@ -17,7 +17,7 @@ final class UnfoldStrip {
     private final UnfoldRows rows;
     // weak, this state lives in the strip's patch data and must not keep the strip's children alive
     private final List<WeakReference<ButtonAPI>> buttons = new ArrayList<>();
-    // false for icons only, where the selection opens a tile and the cursor does nothing
+    // false for icons only, where a click opens a tile and the cursor does nothing
     private final boolean hover;
     private boolean settled;
 
@@ -45,8 +45,12 @@ final class UnfoldStrip {
             apply();
             return;
         }
-        if (!hover) return;
-        // the last hovered tile stays open after the cursor leaves
+        if (hover) aimAtCursor(strip);
+        if (rows.step(amount)) apply();
+    }
+
+    // the last hovered tile stays open after the cursor leaves
+    private void aimAtCursor(UIComponentAPI strip) {
         PositionAPI position = strip.getPosition();
         float x = Global.getSettings().getMouseX() - position.getX();
         float y = position.getY() + position.getHeight() - Global.getSettings().getMouseY();
@@ -54,13 +58,15 @@ final class UnfoldStrip {
             int hovered = rows.at(x, y);
             if (hovered >= 0) rows.aim(hovered);
         }
-        if (rows.step(amount)) apply();
     }
 
+    // icons only: the clicked tile unfolds over the unfold time, advance runs the animation
     void selectionChanged() {
         if (hover) return;
-        openSelected();
-        apply();
+        for (int i = 0; i < buttons.size(); i++) {
+            ButtonAPI button = buttons.get(i).get();
+            if (button != null && button.isHighlighted()) rows.aim(i);
+        }
     }
 
     private void openSelected() {
