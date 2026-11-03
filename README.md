@@ -1,55 +1,40 @@
 # Aligned.Buttons
 
-A Starsector mod that tidies the submarket buttons (Open Market, Black Market, Military Market, Storage and the ones other mods add) above the cargo and fleet screens.
+Aligns the market buttons on Starsector's cargo and fleet screens. Rows fill the panel width, with Storage at the right end of the last row.
 
-In vanilla the buttons have a fixed width, so a row ends short of the panel edge, and the storage button is pinned to the bottom right corner where it lines up with nothing. With this mod the buttons line up in rows that end exactly on the panel edge, with the storage button at the right end of the last row. By default they are icon buttons that unfold under the cursor to show the submarket's name; the vanilla number of named buttons per row or five per row are the other layouts. The selected submarket's button gets an animated highlight in its faction's color, or a still outline, and the button backgrounds get the frame's cut corners.
+Choose between full labels or compact icons that expand on hover. The selected market gets a highlight in its faction's color.
 
 ## Requirements
 
-- Starsector `0.98a`
+- Starsector 0.98a
 - [PatchLib](https://github.com/Lukas22041/PatchLib)
-- LunaLib (and LazyLib, which LunaLib needs)
+- LunaLib and its dependency, LazyLib
 
-## Install
+## Installation
 
-1. Download `Aligned.Buttons-<version>.zip` from the [latest release](https://github.com/SirHartley/Aligned.Buttons/releases/latest).
+1. Download the ZIP from the [latest release](https://github.com/SirHartley/Aligned.Buttons/releases/latest).
 2. Extract it into `Starsector/mods/`.
-3. Enable Aligned.Buttons, PatchLib, LunaLib and LazyLib in the launcher.
+3. Enable Aligned.Buttons and its dependencies in the launcher.
+
+Safe to add or remove during a campaign. Supports Version Checker.
 
 ## Settings
 
-All four are LunaLib settings, in this order:
+Open LunaLib's settings to change these. Changes apply when you reopen the cargo or fleet screen.
 
-**Submarket button layout**
-
-| Option | Buttons |
+| Setting | Options |
 |---|---|
-| Stretched | The vanilla number of buttons per row, widened to fill the row |
-| Five per row | Five buttons with names in each row; names too long for the button are cut short with `...` |
-| Unfold on hover (default) | Icon buttons with one opened to show its name. The button under the cursor opens over the **Unfold time** while the open one folds, so the row keeps its width; sweeping the cursor across makes several buttons open part way and fold back. The last hovered button stays open after the cursor leaves; the selected submarket is the open one when the screen opens |
+| Submarket button layout | **Unfold on hover** (default): icons expand to show their names. **Stretched**: keeps the vanilla button count per row. **Five per row**: fits five named buttons per row. |
+| Selected button highlight | **Animated** (default): moving lights in the faction's color. **Bright band**: a fixed outline. **Off**: vanilla appearance. |
+| Unfold time | Time to expand a button, from 0 to 1 second. Default: 0.1. Set to 0 for instant expansion. |
+| Fix button corners | Fits button backgrounds to their frames. On by default. |
 
-The storage button always sits at the right end of the last row.
-
-**Selected button highlight**
-
-| Option | Selected submarket button |
-|---|---|
-| Off | As in vanilla |
-| Bright band | A 3 px outline: black, the faction's color at full saturation (a gray faction keeps its gray), then white shifted slightly toward that color |
-| Animated (default) | A 2 px black band inside the vanilla frame's outer px (the inner px at half alpha) with four highlights in the faction's color running clockwise around it, one lap every 4.4 s |
-
-**Unfold time**: seconds Unfold on hover takes to open a button fully, 0 to 1, default 0.1. 0 opens it at once.
-
-**Fix button corners** (on by default): the dark background of the submarket buttons gets the same cut corners as their frame instead of the vanilla square corners that show past it.
-
-A change to any setting applies the next time the screen opens.
-
-The mod saves nothing, so it can be added to or removed from an existing save. Version Checker picks up updates through `AlignedButtons.version`.
+With **Unfold on hover**, the last hovered button stays expanded. Each row keeps its width as buttons expand and collapse. Long names are shortened to fit.
 
 ## Compatibility
 
-Submarkets added by other mods are laid out like the vanilla ones. A mod that also moves these buttons will conflict with this one.
+Works with markets added by other mods. Conflicts with mods that also reposition these buttons.
 
-## Building
+## Development
 
-Build and release steps are in [docs/RELEASE.md](docs/RELEASE.md). Code layout and the vanilla behavior the patch relies on are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+See [build and release instructions](docs/RELEASE.md) and the [code reference](docs/ARCHITECTURE.md).

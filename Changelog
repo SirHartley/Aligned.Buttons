@@ -1,4 +1,3 @@
-
 --------------------------- Known issues -----------------------------
 
 None
@@ -10,8 +9,8 @@ None
 --------------------------- Changelog -----------------------------
 
 1.0.a - UNRELEASED
-Added - Submarket buttons on the cargo and fleet screens line up in rows that end exactly on the panel edge, and the storage button sits at the right end of the last row instead of past the end of the row
-Added - Submarket button layout setting (LunaLib): Unfold on hover (default, icon buttons where the one under the cursor opens to show its name while the open one folds and the last hovered one stays open), Stretched (the vanilla number of buttons per row, widened to fill it) or Five per row (names too long for the button are cut short)
-Added - Unfold time setting for Unfold on hover: 0 to 1 seconds, default 0.1
-Added - Selected button highlight setting: Animated (default, a soft black band with four highlights in the faction's color running around the selected submarket button), Bright band (a 3 px outline in black, the faction's color and white) or Off
-Added - Fix button corners setting (on by default): submarket button backgrounds follow the frame's cut corners instead of showing square dark corners
+Added - Market buttons fill each row on the cargo and fleet screens, with Storage at the bottom right
+Added - Three layouts: Unfold on hover (default), Stretched and Five per row
+Added - Adjustable unfold time from 0 to 1 second, defaulting to 0.1
+Added - Selected button highlights: Animated (default), Bright band and Off
+Added - Button backgrounds fit their frames; enabled by default
