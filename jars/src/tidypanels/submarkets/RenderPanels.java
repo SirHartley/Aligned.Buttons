@@ -3,11 +3,13 @@ package tidypanels.submarkets;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import patchlib.api.context.Context;
+import patchlib.api.query.FieldQuery;
+import patchlib.api.spec.FieldQuerySpec;
 
 final class RenderPanels {
 
     // the button sets itself on its render panel at the start of every render
-    private static final String BUTTON = "button";
+    private static final FieldQuerySpec BUTTON = FieldQuery.create().fieldName("button").build();
 
     private RenderPanels() {
     }
